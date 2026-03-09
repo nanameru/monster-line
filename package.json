@@ -1,0 +1,10 @@
+{
+  "name": "monster-line",
+  "version": "1.0.0",
+  "description": "あなたのClaude Codeに住むモンスターを育てよう",
+  "scripts": {
+    "setup": "bash setup.sh"
+  },
+  "license": "MIT",
+  "author": "kimurataiyou"
+}
