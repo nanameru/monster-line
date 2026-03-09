@@ -101,29 +101,38 @@ declare -a art
 
 case $stage in
 
-  1) # ═══ たまご ═══ コロコロ転がる
-    e=$(fg 225 200 170); h=$(fg 250 240 220); sp=$(fg 185 115 75)
+  1) # ═══ たまご ═══ 背景色塗りつぶし・コロコロ転がる
+    # bg() = 背景色で「塗りつぶしピクセル」を作る
+    _bg() { printf "\x1b[48;2;%d;%d;%dm" "$1" "$2" "$3"; }
+    E=$(_bg 225 200 170)    # 卵ボディ
+    H=$(_bg 245 235 215)    # ハイライト
+    S=$(_bg 185 115 75)     # 模様の点
+    Sh=$(_bg 205 185 155)   # シャドウ
+    Fe=$(fg 225 200 170)    # ▄▀用 前景
     case $walk_frame in
       0)
-        art[0]="    ${e}__${R}"
-        art[1]="   ${e}/${h}  ${sp} ${e}\\${R}"
-        art[2]="  ${e}(${h} ${sp}°${h}   ${e})${R}"
-        art[3]="  ${e}(${h}   ${sp}° ${e})${R}"
-        art[4]="   ${e}\\${h}___${e}/${R}"
+        art[0]="     ${Fe}▄▄▄▄▄▄${R}"
+        art[1]="   ${Fe}▄${H}  ${E}      ${Fe}▄${R}"
+        art[2]="  ${Fe}▄${E}  ${S} ${E}       ${Fe}▄${R}"
+        art[3]="  ${E}     ${S} ${E}      ${R}"
+        art[4]="   ${Fe}▀${Sh}        ${Fe}▀${R}"
+        art[5]="     ${Fe}▀▀▀▀▀▀${R}"
         ;;
       1)
-        art[0]="    ${e}__${R}"
-        art[1]="   ${e}/${h}    ${e}\\${R}"
-        art[2]="  ${e}(${h}  ${sp}°${h}  ${e})${R}"
-        art[3]="  ${e}(${h} ${sp}°${h}   ${e})${R}"
-        art[4]="   ${e}\\${h}___${e}/${R}"
+        art[0]="      ${Fe}▄▄▄▄▄▄${R}"
+        art[1]="    ${Fe}▄${E}        ${Fe}▄${R}"
+        art[2]="   ${Fe}▄${E}   ${S} ${E}     ${Fe}▄${R}"
+        art[3]="   ${E}          ${R}"
+        art[4]="    ${Fe}▀${Sh}   ${S} ${Sh}   ${Fe}▀${R}"
+        art[5]="      ${Fe}▀▀▀▀▀▀${R}"
         ;;
       2)
-        art[0]="    ${e}__${R}"
-        art[1]="   ${e}/${sp} ${h}   ${e}\\${R}"
-        art[2]="  ${e}(${h}   ${sp}° ${e})${R}"
-        art[3]="  ${e}(${h} ${sp}°${h}   ${e})${R}"
-        art[4]="   ${e}\\${h}___${e}/${R}"
+        art[0]="    ${Fe}▄▄▄▄▄▄${R}"
+        art[1]="  ${Fe}▄${E}        ${Fe}▄${R}"
+        art[2]=" ${Fe}▄${E}       ${S} ${E} ${Fe}▄${R}"
+        art[3]=" ${E}  ${S} ${E}        ${R}"
+        art[4]="  ${Fe}▀${Sh}        ${Fe}▀${R}"
+        art[5]="    ${Fe}▀▀▀▀▀▀${R}"
         ;;
     esac ;;
 
@@ -327,19 +336,16 @@ fi
 info_2="${tx}${xp}${ui}xp${R} ${ui}│${R} ${tx}${sessions}${ui}回${R}"
 
 # 左にモンスター（pad でインデント）、右に情報
-if [[ -n "${art[4]:-}" ]]; then
-  printf "%b%b   %b\n%b%b   %b\n%b%b   %b\n%b%b\n%b%b\n%b" \
-    "$pad" "${art[0]}" "$info_0" \
-    "$pad" "${art[1]}" "$info_1" \
-    "$pad" "${art[2]}" "$info_2" \
-    "$pad" "${art[3]}" \
-    "$pad" "${art[4]}" \
-    "$floor"
-else
-  printf "%b%b   %b\n%b%b   %b\n%b%b   %b\n%b%b\n%b" \
-    "$pad" "${art[0]}" "$info_0" \
-    "$pad" "${art[1]}" "$info_1" \
-    "$pad" "${art[2]}" "$info_2" \
-    "$pad" "${art[3]}" \
-    "$floor"
-fi
+n=${#art[@]}
+for (( i=0; i<n; i++ )); do
+  if (( i == 0 )); then
+    printf "%b%b   %b\n" "$pad" "${art[$i]}" "$info_0"
+  elif (( i == 1 )); then
+    printf "%b%b   %b\n" "$pad" "${art[$i]}" "$info_1"
+  elif (( i == 2 )); then
+    printf "%b%b   %b\n" "$pad" "${art[$i]}" "$info_2"
+  else
+    printf "%b%b\n" "$pad" "${art[$i]}"
+  fi
+done
+printf "%b" "$floor"
