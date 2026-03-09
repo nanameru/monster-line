@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # ============================================================
-#  monster-line  ─  ステータスラインに住むモンスター育成
+#  monster-line  ─  たまごっち風モンスター育成ステータスライン
 #  Claude Code を使うたびに経験値が溜まり、進化していく
 # ============================================================
 
@@ -16,12 +16,21 @@ if [[ ! -f "$SAVE_FILE" ]]; then
 JSON
 fi
 
-save=$(cat "$SAVE_FILE")
-xp=$(echo "$save" | /usr/bin/python3 -c "import sys,json;print(json.load(sys.stdin).get('xp',0))" 2>/dev/null || echo 0)
-stage=$(echo "$save" | /usr/bin/python3 -c "import sys,json;print(json.load(sys.stdin).get('stage',1))" 2>/dev/null || echo 1)
-sessions=$(echo "$save" | /usr/bin/python3 -c "import sys,json;print(json.load(sys.stdin).get('sessions',0))" 2>/dev/null || echo 0)
-last_gain=$(echo "$save" | /usr/bin/python3 -c "import sys,json;print(json.load(sys.stdin).get('last_gain',0))" 2>/dev/null || echo 0)
-hatched=$(echo "$save" | /usr/bin/python3 -c "import sys,json;print(json.load(sys.stdin).get('hatched','never'))" 2>/dev/null || echo "never")
+# ─── セーブデータ読み込み（python3で一括パース） ───
+read_save() {
+  /usr/bin/python3 -c "
+import json,sys
+with open('$SAVE_FILE') as f: d=json.load(f)
+print(d.get('xp',0))
+print(d.get('stage',1))
+print(d.get('sessions',0))
+print(d.get('last_gain',0))
+print(d.get('hatched','never'))
+" 2>/dev/null
+}
+
+IFS=$'\n' read -r -d '' xp stage sessions last_gain hatched < <(read_save && printf '\0') || true
+xp=${xp:-0}; stage=${stage:-1}; sessions=${sessions:-0}; last_gain=${last_gain:-0}; hatched=${hatched:-never}
 
 now=$(date +%s)
 
@@ -32,11 +41,9 @@ if (( elapsed > 300 )); then
   sessions=$(( sessions + 1 ))
   last_gain=$now
 
-  if [[ "$hatched" == "never" ]]; then
-    hatched=$(date +%Y-%m-%d)
-  fi
+  [[ "$hatched" == "never" ]] && hatched=$(date +%Y-%m-%d)
 
-  # ─── 進化チェック ───
+  # ─── 進化判定 ───
   if   (( xp >= 6000 )); then stage=6
   elif (( xp >= 2500 )); then stage=5
   elif (( xp >= 1000 )); then stage=4
@@ -52,236 +59,271 @@ with open('$SAVE_FILE','w') as f: json.dump(d,f)
 " 2>/dev/null
 fi
 
-# ─── アニメーションフレーム（秒ベース 4フレーム） ───
+# ─── アニメーションフレーム ───
 tick=$(( now % 4 ))
 
-# ─── カラー定義 ───
-_c() { printf "\x1b[38;2;%d;%d;%dm" "$1" "$2" "$3"; }
+# ─── カラーヘルパー ───
+fg() { printf "\x1b[38;2;%d;%d;%dm" "$1" "$2" "$3"; }
 R="\x1b[0m"
 
-# ステージごとのテーマカラー
+# ─── ステージカラーパレット ───
 case $stage in
-  1) tint=$(_c 180 180 190) spark=$(_c 230 230 240) accent=$(_c 255 255 220) ;;
-  2) tint=$(_c 80 210 120)  spark=$(_c 140 255 170) accent=$(_c 200 255 200) ;;
-  3) tint=$(_c 240 160 50)  spark=$(_c 255 200 100) accent=$(_c 255 220 150) ;;
-  4) tint=$(_c 200 50 70)   spark=$(_c 255 100 120) accent=$(_c 255 60 80)   ;;
-  5) tint=$(_c 60 130 240)  spark=$(_c 120 180 255) accent=$(_c 255 140 40)  ;;
-  6) tint=$(_c 255 200 40)  spark=$(_c 255 230 100) accent=$(_c 255 255 180) ;;
+  1) c1=$(fg 200 200 210) c2=$(fg 255 255 230) c3=$(fg 160 160 175) label="タマゴ" ;;
+  2) c1=$(fg 60 200 100)  c2=$(fg 120 255 150) c3=$(fg 40 160 70)   label="スライム" ;;
+  3) c1=$(fg 220 170 60)  c2=$(fg 255 210 100) c3=$(fg 180 130 30)  label="ウルフ" ;;
+  4) c1=$(fg 190 40 60)   c2=$(fg 255 80 100)  c3=$(fg 140 20 40)   label="アクマ" ;;
+  5) c1=$(fg 50 120 220)  c2=$(fg 100 170 255) c3=$(fg 255 130 30)  label="リュウ" ;;
+  6) c1=$(fg 255 200 30)  c2=$(fg 255 240 120) c3=$(fg 200 160 20)  label="シンリュウ" ;;
 esac
 
-soft=$(_c 100 100 110)
-txt=$(_c 190 190 200)
-dim=$(_c 70 70 80)
+ui=$(fg 90 90 100)
+tx=$(fg 180 180 190)
 
-# ─── モンスターのアスキーアート（複数行・4フレームアニメーション） ───
-# 各ステージは3行のアートを出力する（line_a, line_b, line_c）
+# ─── たまごっち風ドット絵モンスター（5行 x 4フレーム） ───
+# 出力は lines 配列に格納される
+declare -a lines
 
-render_monster() {
+draw_monster() {
   case $stage in
 
-    1) # ─── たまご ─ ゆらゆら揺れて光が走る ───
+    1) # ═══ たまご ═══ ゆらゆら揺れて中の光が動く
       case $tick in
         0)
-          line_a="    ${tint}╭───╮${R}"
-          line_b="    ${tint}│${spark} ○ ${tint}│${R}"
-          line_c="    ${tint}╰───╯${R}"
+          lines[0]="${c1}    ▄████▄${R}"
+          lines[1]="${c1}   █${c3}░░░░░░${c1}█${R}"
+          lines[2]="${c1}  █${c3}░░${c2}◦${c3}░░░${c1}█${R}"
+          lines[3]="${c1}   █${c3}░░░░░░${c1}█${R}"
+          lines[4]="${c1}    ▀████▀${R}"
           ;;
         1)
-          line_a="     ${tint}╭───╮${R}"
-          line_b="     ${tint}│${accent}◎${spark} ·${tint}│${R}"
-          line_c="     ${tint}╰───╯${R}"
+          lines[0]="${c1}     ▄████▄${R}"
+          lines[1]="${c1}    █${c3}░░░░░░${c1}█${R}"
+          lines[2]="${c1}   █${c3}░░░${c2}◎${c3}░░${c1}█${R}"
+          lines[3]="${c1}    █${c3}░░░░░░${c1}█${R}"
+          lines[4]="${c1}     ▀████▀${R}"
           ;;
         2)
-          line_a="    ${tint}╭───╮${R}"
-          line_b="    ${tint}│${spark} · ${accent}◎${tint}│${R}"
-          line_c="    ${tint}╰───╯${R}"
+          lines[0]="${c1}    ▄████▄${R}"
+          lines[1]="${c1}   █${c3}░░░░░░${c1}█${R}"
+          lines[2]="${c1}  █${c3}░░░░${c2}◦${c3}░${c1}█${R}"
+          lines[3]="${c1}   █${c3}░░░░░░${c1}█${R}"
+          lines[4]="${c1}    ▀████▀${R}"
           ;;
         3)
-          line_a="   ${tint}╭───╮${R}"
-          line_b="   ${tint}│ ${accent}◉${spark} ·${tint}│${R}"
-          line_c="   ${tint}╰───╯${R}"
+          lines[0]="${c1}   ▄████▄${R}"
+          lines[1]="${c1}  █${c3}░░░░░░${c1}█${R}"
+          lines[2]="${c1}  █${c3}░${c2}◎${c3}░░░░${c1}█${R}"
+          lines[3]="${c1}  █${c3}░░░░░░${c1}█${R}"
+          lines[4]="${c1}   ▀████▀${R}"
           ;;
       esac ;;
 
-    2) # ─── スライム ─ ぷるぷる弾む ───
+    2) # ═══ スライム ═══ ぷるぷる伸縮する
       case $tick in
         0)
-          line_a="    ${tint}╭─◠─╮${R}"
-          line_b="    ${tint}│${spark}◕‿◕${tint}│${R}"
-          line_c="    ${tint}╰───╯${R}"
+          lines[0]="${c1}     ▄███▄${R}"
+          lines[1]="${c1}    █${c2} ◕ ${c1}█${c2} ◕ ${c1}█${R}"
+          lines[2]="${c1}    █${c2}  ▽  ${c1}█${R}"
+          lines[3]="${c1}     █████${R}"
+          lines[4]="${c3}      ▀▀▀${R}"
           ;;
         1)
-          line_a="   ${tint}╭──◠──╮${R}"
-          line_b="   ${tint}│${spark} ◕‿◕ ${tint}│${R}"
-          line_c="   ${tint}╰─────╯${R}"
+          lines[0]="${c1}    ▄█████▄${R}"
+          lines[1]="${c1}   █${c2} ◕  ${c1}█${c2}  ◕ ${c1}█${R}"
+          lines[2]="${c1}   █${c2}   ▽   ${c1}█${R}"
+          lines[3]="${c1}    ███████${R}"
+          lines[4]="${c3}     ▀▀▀▀▀${R}"
           ;;
         2)
-          line_a="    ${tint}╭─◠─╮${R}"
-          line_b="    ${tint}│${spark}◕⌄◕${tint}│${R}"
-          line_c="    ${tint}╰───╯${R}"
+          lines[0]="${c1}     ▄███▄${R}"
+          lines[1]="${c1}    █${c2} ◕ ${c1}█${c2} ◕ ${c1}█${R}"
+          lines[2]="${c1}    █${c2}  ◡  ${c1}█${R}"
+          lines[3]="${c1}     █████${R}"
+          lines[4]="${c3}      ▀▀▀${R}"
           ;;
         3)
-          line_a="   ${tint}╭──◠──╮${R}"
-          line_b="   ${tint}│${spark} ◕⌄◕ ${tint}│${R}"
-          line_c="   ${tint}╰─────╯${R}"
+          lines[0]="${c1}    ▄█████▄${R}"
+          lines[1]="${c1}   █${c2} ◕  ${c1}█${c2}  ◕ ${c1}█${R}"
+          lines[2]="${c1}   █${c2}   ◡   ${c1}█${R}"
+          lines[3]="${c1}    ███████${R}"
+          lines[4]="${c3}     ▀▀▀▀▀${R}"
           ;;
       esac ;;
 
-    3) # ─── ウルフ ─ 耳がぴくぴく、しっぽ振る ───
+    3) # ═══ ウルフ ═══ 耳ぴくぴく＋しっぽ振り
       case $tick in
         0)
-          line_a="   ${spark}∧ ∧${R}"
-          line_b="   ${tint}(・ω・)${spark}~${R}"
-          line_c="   ${tint} /  \\${R}"
+          lines[0]="${c2}  ∧     ∧${R}"
+          lines[1]="${c1}  █${c2}◕${c1}██${c2}◕${c1}█${R}"
+          lines[2]="${c1}  █${c2} ω ${c1}█${c2}~${R}"
+          lines[3]="${c1}  █████${R}"
+          lines[4]="${c1}  █${c3}▀${c1}█ █${c3}▀${c1}█${R}"
           ;;
         1)
-          line_a="   ${spark}∧ ˅${R}"
-          line_b="   ${tint}(・ω・)${spark}~~${R}"
-          line_c="   ${tint} /  \\${R}"
+          lines[0]="${c2}  ∧     ˅${R}"
+          lines[1]="${c1}  █${c2}◕${c1}██${c2}◕${c1}█${R}"
+          lines[2]="${c1}  █${c2} ω ${c1}█${c2}~~${R}"
+          lines[3]="${c1}  █████${R}"
+          lines[4]="${c1}  █${c3}▀${c1}█ █${c3}▀${c1}█${R}"
           ;;
         2)
-          line_a="   ${spark}˅ ∧${R}"
-          line_b="   ${tint}(・ω・)${spark}~${R}"
-          line_c="   ${tint} /  \\${R}"
+          lines[0]="${c2}  ˅     ∧${R}"
+          lines[1]="${c1}  █${c2}◕${c1}██${c2}◕${c1}█${R}"
+          lines[2]="${c1}  █${c2} ω ${c1}█${c2}~${R}"
+          lines[3]="${c1}  █████${R}"
+          lines[4]="${c1}  █${c3}▀${c1}█ █${c3}▀${c1}█${R}"
           ;;
         3)
-          line_a="   ${spark}∧ ∧${R}"
-          line_b="   ${tint}(・ω・)${spark}~~${R}"
-          line_c="   ${tint} /  \\${R}"
+          lines[0]="${c2}  ∧     ∧${R}"
+          lines[1]="${c1}  █${c2}◕${c1}██${c2}◕${c1}█${R}"
+          lines[2]="${c1}  █${c2} ω ${c1}█${c2}~~~${R}"
+          lines[3]="${c1}  █████${R}"
+          lines[4]="${c1}  █${c3}▀${c1}█ █${c3}▀${c1}█${R}"
           ;;
       esac ;;
 
-    4) # ─── アクマ ─ 翼をはためかせ、角が光る ───
+    4) # ═══ アクマ ═══ 翼バサバサ＋角が光る
       case $tick in
         0)
-          line_a="  ${accent}† ${spark}∨∨${accent} †${R}"
-          line_b="  ${tint}}${accent}(▼皿▼)${tint}{${R}"
-          line_c="   ${tint} /||\\${R}"
+          lines[0]="${c2}  ☆ ${c1}▼▼${c2} ☆${R}"
+          lines[1]="${c1} }█${c2}◣${c1}██${c2}◣${c1}█{${R}"
+          lines[2]="${c1}  █${c2}  皿 ${c1}█${R}"
+          lines[3]="${c1}  ██████${R}"
+          lines[4]="${c1}  █${c3}▀${c1}█  █${c3}▀${c1}█${R}"
           ;;
         1)
-          line_a="  ${accent}†${spark} ∨∨ ${accent}†${R}"
-          line_b=" ${tint}} ${accent}(▼皿▼) ${tint}{${R}"
-          line_c="   ${tint}  /||\\${R}"
+          lines[0]="${c2}  ★ ${c1}▼▼${c2} ★${R}"
+          lines[1]="${c1}}${c3}╲${c1}█${c2}◣${c1}██${c2}◣${c1}█${c3}╱${c1}{${R}"
+          lines[2]="${c1}  █${c2} 益  ${c1}█${R}"
+          lines[3]="${c1}  ██████${R}"
+          lines[4]="${c1}  █${c3}▀${c1}█  █${c3}▀${c1}█${R}"
           ;;
         2)
-          line_a="  ${accent}‡ ${spark}∨∨${accent} ‡${R}"
-          line_b="  ${tint}]${accent}(▼益▼)${tint}[${R}"
-          line_c="   ${tint} /||\\${R}"
+          lines[0]="${c2}  ☆ ${c1}▼▼${c2} ☆${R}"
+          lines[1]="${c1} ]█${c2}◣${c1}██${c2}◣${c1}█[${R}"
+          lines[2]="${c1}  █${c2}  皿 ${c1}█${R}"
+          lines[3]="${c1}  ██████${R}"
+          lines[4]="${c1}  █${c3}▀${c1}█  █${c3}▀${c1}█${R}"
           ;;
         3)
-          line_a="  ${accent}‡${spark} ∨∨ ${accent}‡${R}"
-          line_b=" ${tint}] ${accent}(▼益▼) ${tint}[${R}"
-          line_c="   ${tint}  /||\\${R}"
+          lines[0]="${c2}  ★ ${c1}▼▼${c2} ★${R}"
+          lines[1]="${c1}]${c3}╲${c1}█${c2}◣${c1}██${c2}◣${c1}█${c3}╱${c1}[${R}"
+          lines[2]="${c1}  █${c2} 益  ${c1}█${R}"
+          lines[3]="${c1}  ██████${R}"
+          lines[4]="${c1}  █${c3}▀${c1}█  █${c3}▀${c1}█${R}"
           ;;
       esac ;;
 
-    5) # ─── リュウ ─ 翼を広げて炎を吐く ───
+    5) # ═══ リュウ ═══ 翼を広げて炎を吐く
       case $tick in
         0)
-          line_a="  ${spark}/\\ ${tint}◇◇${spark} /\\${R}"
-          line_b="  ${tint}  (◇ᴗ◇)>${R}"
-          line_c="  ${tint}  /╱ ╲\\${R}"
+          lines[0]="${c2} /▲${c1}  ◇◇  ${c2}▲\\${R}"
+          lines[1]="${c1}   █${c2}◇${c1}██${c2}◇${c1}█${R}"
+          lines[2]="${c1}   █${c2} ᴗ ${c1}█▸${R}"
+          lines[3]="${c1}   ██████${R}"
+          lines[4]="${c1}   █${c3}▀${c1}█  █${c3}▀${c1}█${R}"
           ;;
         1)
-          line_a=" ${spark}/\\  ${tint}◇◇${spark}  /\\${R}"
-          line_b="  ${tint}  (◇ᴗ◇)>${accent}~${R}"
-          line_c="  ${tint}  /╱ ╲\\${R}"
+          lines[0]="${c2}/▲ ${c1}  ◇◇  ${c2} ▲\\${R}"
+          lines[1]="${c1}   █${c2}◇${c1}██${c2}◇${c1}█${R}"
+          lines[2]="${c1}   █${c2} ᴗ ${c1}█▸${c3}~${R}"
+          lines[3]="${c1}   ██████${R}"
+          lines[4]="${c1}   █${c3}▀${c1}█  █${c3}▀${c1}█${R}"
           ;;
         2)
-          line_a="  ${spark}/\\ ${tint}◇◇${spark} /\\${R}"
-          line_b="  ${tint}  (◇ᴗ◇)>${accent}≈~${R}"
-          line_c="  ${tint}  /╱ ╲\\${R}"
+          lines[0]="${c2} /▲${c1}  ◇◇  ${c2}▲\\${R}"
+          lines[1]="${c1}   █${c2}◇${c1}██${c2}◇${c1}█${R}"
+          lines[2]="${c1}   █${c2} ᴗ ${c1}█▸${c3}≈~${R}"
+          lines[3]="${c1}   ██████${R}"
+          lines[4]="${c1}   █${c3}▀${c1}█  █${c3}▀${c1}█${R}"
           ;;
         3)
-          line_a=" ${spark}/\\  ${tint}◇◇${spark}  /\\${R}"
-          line_b="  ${tint}  (◇ᴗ◇)>${accent}彡≈${R}"
-          line_c="  ${tint}  /╱ ╲\\${R}"
+          lines[0]="${c2}/▲ ${c1}  ◇◇  ${c2} ▲\\${R}"
+          lines[1]="${c1}   █${c2}◇${c1}██${c2}◇${c1}█${R}"
+          lines[2]="${c1}   █${c2} ᴗ ${c1}█▸${c3}彡≈${R}"
+          lines[3]="${c1}   ██████${R}"
+          lines[4]="${c1}   █${c3}▀${c1}█  █${c3}▀${c1}█${R}"
           ;;
       esac ;;
 
-    6) # ─── シンリュウ ─ 神々しいオーラと光の粒子 ───
+    6) # ═══ シンリュウ ═══ 神々しいオーラ＋光の粒子
       case $tick in
         0)
-          line_a=" ${accent}  ✦  ${spark}◇◇${accent}  ✦${R}"
-          line_b=" ${accent}.*${tint}(≖ᴗ≖)${accent}*.${R}"
-          line_c=" ${spark} ✧ ${dim}⋰⋱⋰${spark} ✧${R}"
+          lines[0]="${c2} ✦ ${c1} ◇◇ ${c2} ✦${R}"
+          lines[1]="${c2}.*${c1}█${c2}≖${c1}██${c2}≖${c1}█${c2}*.${R}"
+          lines[2]="${c1}  █${c2} ᴗ ${c1}█${R}"
+          lines[3]="${c2}✧${c1}██████${c2}✧${R}"
+          lines[4]="${c3} ⋰⋱ ${c2}▀▀${c3} ⋰⋱${R}"
           ;;
         1)
-          line_a=" ${accent} ✧ ${spark}◇◇${accent} ✧${R}"
-          line_b=" ${accent}*.${tint}(≖‿≖)${accent}.*${R}"
-          line_c=" ${spark}  ✦${dim}⋱⋰⋱${spark}✦${R}"
+          lines[0]="${c2}✧  ${c1} ◇◇ ${c2}  ✧${R}"
+          lines[1]="${c2}*.${c1}█${c2}≖${c1}██${c2}≖${c1}█${c2}.*${R}"
+          lines[2]="${c1}  █${c2} ‿ ${c1}█${R}"
+          lines[3]="${c2} ✦${c1}████${c2}✦${R}"
+          lines[4]="${c3}  ⋱⋰${c2}▀▀${c3}⋱⋰${R}"
           ;;
         2)
-          line_a=" ${accent}  ✦  ${spark}◇◇${accent}  ✦${R}"
-          line_b=" ${accent}·*${tint}(≖ᴗ≖)${accent}*·${R}"
-          line_c=" ${spark} ✧ ${dim}⋰⋱⋰${spark} ✧${R}"
+          lines[0]="${c2} ✦ ${c1} ◇◇ ${c2} ✦${R}"
+          lines[1]="${c2}·*${c1}█${c2}≖${c1}██${c2}≖${c1}█${c2}*·${R}"
+          lines[2]="${c1}  █${c2} ᴗ ${c1}█${R}"
+          lines[3]="${c2}✧${c1}██████${c2}✧${R}"
+          lines[4]="${c3} ⋰⋱ ${c2}▀▀${c3} ⋰⋱${R}"
           ;;
         3)
-          line_a=" ${accent} ✧  ${spark}◇◇${accent}  ✧${R}"
-          line_b=" ${accent}*·${tint}(≖‿≖)${accent}·*${R}"
-          line_c=" ${spark}  ✦${dim}⋱⋰⋱${spark}✦${R}"
+          lines[0]="${c2}  ✧${c1} ◇◇ ${c2}✧${R}"
+          lines[1]="${c2}*·${c1}█${c2}≖${c1}██${c2}≖${c1}█${c2}·*${R}"
+          lines[2]="${c1}  █${c2} ‿ ${c1}█${R}"
+          lines[3]="${c2} ✦${c1}████${c2}✦${R}"
+          lines[4]="${c3}  ⋱⋰${c2}▀▀${c3}⋱⋰${R}"
           ;;
       esac ;;
-  esac
-}
 
-# ─── ステージ名 ───
-stage_name() {
-  case $stage in
-    1) echo "タマゴ"   ;;
-    2) echo "スライム" ;;
-    3) echo "ウルフ"   ;;
-    4) echo "アクマ"   ;;
-    5) echo "リュウ"   ;;
-    6) echo "シンリュウ" ;;
   esac
 }
 
 # ─── 進化ゲージ ───
 evo_gauge() {
-  local cur_xp=$1
   local lo hi pct filled empty bar i
-
   case $stage in
     1) lo=0;    hi=100  ;;
     2) lo=100;  hi=400  ;;
     3) lo=400;  hi=1000 ;;
     4) lo=1000; hi=2500 ;;
     5) lo=2500; hi=6000 ;;
-    6) printf "MAX"; return ;;
+    6) printf "${c2}★ MAX ★${R}"; return ;;
   esac
 
-  pct=$(( (cur_xp - lo) * 100 / (hi - lo) ))
+  pct=$(( (xp - lo) * 100 / (hi - lo) ))
   (( pct > 100 )) && pct=100
-
-  filled=$(( pct * 6 / 100 ))
-  empty=$(( 6 - filled ))
+  filled=$(( pct * 8 / 100 ))
+  empty=$(( 8 - filled ))
 
   bar=""
   for (( i=0; i<filled; i++ )); do bar+="■"; done
   for (( i=0; i<empty;  i++ )); do bar+="□"; done
-
   printf "%s %d%%" "$bar" "$pct"
 }
 
-# ─── 出力を組み立て ───
-render_monster
-name=$(stage_name)
-gauge=$(evo_gauge "$xp")
+# ─── 描画 ───
+draw_monster
+
 lv=$(( xp / 15 + 1 ))
+gauge=$(evo_gauge)
 
-# モンスターアート（3行）の右側に情報を付ける
-info_a="${spark}${name}${R} ${soft}Lv.${lv}${R}"
-
+# モンスター5行の右に情報を配置
+info_0="${c2}${label}${R} ${ui}Lv.${lv}${R}"
+info_1=""
 if (( stage < 6 )); then
-  info_b="${soft}EVO ${tint}${gauge}${R}"
-  info_c="${txt}${xp}xp${R} ${soft}│${R} ${txt}${sessions}回${R}"
+  info_2="${ui}EVO ${c1}${gauge}${R}"
 else
-  info_b="${spark}★ ${gauge} ★${R}"
-  info_c="${txt}${xp}xp${R} ${soft}│${R} ${txt}${sessions}回${R}"
+  info_2="${gauge}"
 fi
+info_3="${tx}${xp}${ui}xp${R} ${ui}│${R} ${tx}${sessions}${ui}回${R}"
+info_4=""
 
-printf "%b  %b\n%b  %b\n%b  %b" \
-  "$line_a" "$info_a" \
-  "$line_b" "$info_b" \
-  "$line_c" "$info_c"
+printf "%b   %b\n%b   %b\n%b   %b\n%b   %b\n%b   %b" \
+  "${lines[0]}" "$info_0" \
+  "${lines[1]}" "$info_1" \
+  "${lines[2]}" "$info_2" \
+  "${lines[3]}" "$info_3" \
+  "${lines[4]}" "$info_4"
