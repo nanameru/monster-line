@@ -33,13 +33,16 @@ echo "  ✓ monster.sh → $DEST"
 mkdir -p "$HOME/.claude/monster/art"
 echo "  ✓ セーブデータ領域を作成"
 
-# ─── アートファイルをコピー ───
+# ─── アートファイルをコピー（3フレームアニメーション） ───
 for f in egg slime wolf demon dragon goddragon; do
-  if [[ -f "$SCRIPT_DIR/assets/${f}_clean.txt" ]]; then
-    cp "$SCRIPT_DIR/assets/${f}_clean.txt" "$HOME/.claude/monster/art/${f}.txt"
-  fi
+  for i in 0 1 2; do
+    src="$SCRIPT_DIR/assets/${f}_f${i}_clean.txt"
+    if [[ -f "$src" ]]; then
+      cp "$src" "$HOME/.claude/monster/art/${f}_f${i}.txt"
+    fi
+  done
 done
-echo "  ✓ モンスターアート → ~/.claude/monster/art/"
+echo "  ✓ モンスターアート(18フレーム) → ~/.claude/monster/art/"
 
 # ─── settings.json を更新 ───
 if [[ -f "$SETTINGS" ]]; then

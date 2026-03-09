@@ -71,13 +71,6 @@ else
   pos=$(( 10 - pos_cycle ))
 fi
 
-# バウンスアニメーション（フレームごとに上下）
-case $walk_frame in
-  0) bounce=0 ;;
-  1) bounce=1 ;;
-  2) bounce=0 ;;
-esac
-
 # ─── カラーヘルパー ───
 fg() { printf "\x1b[38;2;%d;%d;%dm" "$1" "$2" "$3"; }
 R="\x1b[0m"
@@ -136,17 +129,16 @@ fi
 info_2="${tx}${xp}${ui}xp${R} ${ui}│${R} ${tx}${sessions}${ui}回${R}"
 
 # ─── アートファイル読み込み＆描画 ───
-art_path="$ART_DIR/${art_file}.txt"
+# 3フレームアニメーション: walk_frame(0,1,2) に対応するアートを選択
+art_path="$ART_DIR/${art_file}_f${walk_frame}.txt"
+
+# フォールバック: フレームファイルが無ければ旧形式を試す
+if [[ ! -f "$art_path" ]]; then
+  art_path="$ART_DIR/${art_file}.txt"
+fi
 
 if [[ -f "$art_path" ]]; then
-  # chafa生成のANSIアートを使用
   line_num=0
-  total_lines=8
-
-  # バウンス効果: フレーム1の時は空行を先頭に1行追加
-  if (( bounce == 1 )); then
-    printf "\n"
-  fi
 
   while IFS= read -r line; do
     if (( line_num == 0 )); then
@@ -160,12 +152,6 @@ if [[ -f "$art_path" ]]; then
     fi
     (( line_num++ ))
   done < "$art_path"
-
-  # バウンスしていない時は末尾に空行追加（高さ揃え）
-  if (( bounce == 0 )); then
-    printf "\n"
-  fi
 else
-  # アートファイルが見つからない場合のフォールバック
   printf "%b%s Lv.%d  %dxp\n" "$c2" "$label" "$lv" "$xp"
 fi
