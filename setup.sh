@@ -30,8 +30,16 @@ chmod +x "$DEST"
 echo "  ✓ monster.sh → $DEST"
 
 # ─── モンスターデータディレクトリ作成 ───
-mkdir -p "$HOME/.claude/monster"
+mkdir -p "$HOME/.claude/monster/art"
 echo "  ✓ セーブデータ領域を作成"
+
+# ─── アートファイルをコピー ───
+for f in egg slime wolf demon dragon goddragon; do
+  if [[ -f "$SCRIPT_DIR/assets/${f}_clean.txt" ]]; then
+    cp "$SCRIPT_DIR/assets/${f}_clean.txt" "$HOME/.claude/monster/art/${f}.txt"
+  fi
+done
+echo "  ✓ モンスターアート → ~/.claude/monster/art/"
 
 # ─── settings.json を更新 ───
 if [[ -f "$SETTINGS" ]]; then
