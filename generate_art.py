@@ -1,7 +1,8 @@
 #!/usr/bin/env python3
 """
-monster-line キャラクター ピクセルアート生成スクリプト
+monster-line キャラクター ピクセルアート生成スクリプト v2
 16x16 ピクセルグリッドから ANSI半ブロック文字アートを生成
+画像プレビューから改善: 大きな目、明確なシルエット、キャラ毎の個性
 """
 
 import os
@@ -46,105 +47,104 @@ def save_art(name, content):
 
 
 # ═══════════════════════════════════════════════════
-#  1. タマゴ (Egg)
+#  1. タマゴ (Egg) - 純粋なたまご。顔なし。ヒビ模様のみ。
 # ═══════════════════════════════════════════════════
 egg_palette = {
-    'o': (60, 50, 40),      # outline dark
-    'e': (255, 240, 210),   # egg shell light
-    's': (240, 220, 180),   # egg shell mid
-    'c': (200, 180, 140),   # crack color
-    'h': (255, 200, 180),   # highlight
-    'p': (255, 180, 200),   # pink spot
-    'b': (200, 230, 255),   # blue spot
+    'o': (80, 65, 45),       # outline
+    'e': (255, 240, 210),    # shell main
+    's': (245, 225, 190),    # shell shade
+    'c': (180, 155, 120),    # crack
+    'h': (255, 250, 235),    # highlight
 }
 
 egg_f0 = [
     "................",
-    "......oeeo......",
-    ".....oesseo.....",
-    "....oesshseo....",
-    "...oesshhsseo...",
-    "...oesssssseoo..",
-    "...oesccssseo...",
-    "..oescssssseo...",
-    "..oessscssseoo..",
-    "..oessssssseo...",
-    "..oesssspsseoo..",
-    "..oessbsssseo...",
-    "...oessssseo....",
-    "...oessssseo....",
-    "....ooessoo.....",
-    "......ooo.......",
+    "......oooo......",
+    "....oohhhsoo....",
+    "...ohhhhhssso...",
+    "..oessssssseso..",
+    "..oessssssseso..",
+    "..oessssssseso..",
+    "..oessssssseso..",
+    "..oessssssseso..",
+    "..oesscsssseso..",
+    "..oesscssseso...",
+    "..oesssssseso...",
+    "...oesssssso....",
+    "....oesssso.....",
+    ".....oooooo.....",
+    "................",
 ]
 
 egg_f1 = [
     "................",
-    "......oeeo......",
-    ".....oesseo.....",
-    "....oesshseo....",
-    "...oesshhsseo...",
-    "...oesssssseoo..",
-    "...oesccssseo...",
-    "..oescssssseo...",
-    "..oessscssseoo..",
-    "..oessssssseo...",
-    "..oesssspsseoo..",
-    "..oessbsssseo...",
-    "...oessssseo....",
-    "...oessssseo....",
-    "....ooessoo.....",
-    ".......ooo......",
+    "......oooo......",
+    "....oohhhsoo....",
+    "...ohhhhhssso...",
+    "..oessssssseso..",
+    "..oessssssseso..",
+    "..oessssssseso..",
+    "..oessssssseso..",
+    "..oessssssseso..",
+    "..oesscsssseso..",
+    "..oesscssseso...",
+    "..oesssssseso...",
+    "...oesssssso....",
+    "....oesssso.....",
+    ".....oooooo.....",
+    "................",
 ]
 
 egg_f2 = [
     "................",
-    "......oeeo......",
-    ".....oesseo.....",
-    "....oesshseo....",
-    "...oesshhsseo...",
-    "...oesssssseoo..",
-    "...oesccssseo...",
-    "..oescssssseo...",
-    "..oessscssseoo..",
-    "..oessssssseo...",
-    "..oesssspsseoo..",
-    "..oessbsssseo...",
-    "...oessssseo....",
-    "...oessssseo....",
-    "....ooessoo.....",
-    "......ooo.......",
+    "......oooo......",
+    "....oohhhsoo....",
+    "...ohhhhhssso...",
+    "..oessssssseso..",
+    "..oessssssseso..",
+    "..oessssssseso..",
+    "..oessssssseso..",
+    "..oessssssseso..",
+    "..oesscsssseso..",
+    "..oesscssseso...",
+    "..oesssssseso...",
+    "...oesssssso....",
+    "....oesssso.....",
+    "......oooooo....",
+    "................",
 ]
 
 # ═══════════════════════════════════════════════════
-#  2. スライム (Slime)
+#  2. スライム (Slime) - ドラクエ風。大きな目＋にっこり口
 # ═══════════════════════════════════════════════════
 slime_palette = {
-    'o': (20, 80, 30),       # outline
-    'g': (60, 200, 100),     # body green
-    'l': (100, 230, 140),    # light green
-    'd': (40, 160, 70),      # dark green
+    'o': (15, 70, 25),       # outline
+    'g': (50, 190, 90),      # body
+    'l': (90, 220, 130),     # light body
+    'L': (130, 240, 160),    # lightest/top
+    'd': (30, 140, 60),      # dark body
     'w': (255, 255, 255),    # eye white
-    'k': (30, 30, 40),       # eye pupil
-    'm': (180, 60, 80),      # mouth
-    'h': (150, 255, 180),    # highlight
-    'c': (220, 80, 100),     # cheek
+    'k': (20, 20, 30),       # pupil
+    'i': (180, 220, 255),    # eye highlight
+    'm': (200, 60, 80),      # mouth
+    'c': (255, 150, 170),    # cheek
 }
 
 slime_f0 = [
     "................",
     "......oggo......",
-    "....ogglgggo....",
-    "...oglllggggoo..",
-    "..ogllgggggggo..",
-    "..ogwkggwkgggo..",
-    ".ogggggmgggggo..",
-    ".ogcgggggggcgo..",
-    ".ogggggggggggoo.",
-    ".odggggggggggoo.",
-    ".odggggggggggo..",
-    "..odggggggggo...",
-    "...oddgggddo....",
-    "....ooodooo.....",
+    ".....oLLLgo.....",
+    "....oLLLlggo....",
+    "...oLllllgggo...",
+    "..olllggggggoo..",
+    "..oliwggiwogooo.",
+    "..olwkggwkgooo..",
+    "..olggggggggoo..",
+    "..olggmmmmggoo..",
+    "..ocggggggggco..",
+    "...odggggggoo...",
+    "....odddddoo....",
+    ".....oooooo.....",
     "................",
     "................",
 ]
@@ -153,340 +153,347 @@ slime_f1 = [
     "................",
     "................",
     "......oggo......",
-    "....ogglgggo....",
-    "...oglllggggoo..",
-    "..ogllgggggggo..",
-    "..ogwkggwkgggo..",
-    ".ogggggmgggggo..",
-    ".ogcgggggggcgo..",
-    ".ogggggggggggoo.",
-    ".odggggggggggoo.",
-    "..odggggggggo...",
-    "...oddgggddo....",
-    "....ooodooo.....",
+    ".....oLLLgo.....",
+    "....oLLLlggo....",
+    "...oLllllgggo...",
+    "..olllggggggoo..",
+    "..oliwggiwogooo.",
+    "..olwkggwkgooo..",
+    "..olggggggggoo..",
+    "..olggmmmmggoo..",
+    "..ocggggggggco..",
+    "...odddddddoo..",
+    "....ooooooo.....",
     "................",
     "................",
 ]
 
 slime_f2 = [
     "................",
-    ".....ogggo......",
-    "...ogglggggo....",
-    "..ogllllggggo...",
-    ".ogllllggggggo..",
-    ".ogwkgggwkgggo..",
-    ".oggggggmggggo..",
-    ".ogcggggggcggo..",
-    "..oggggggggggo..",
-    "..odgggggggggo..",
-    "...odggggggo....",
-    "....odddddo.....",
-    ".....ooooo......",
+    ".....oggggo.....",
+    "....oLLLlggo....",
+    "...oLLlllgggo...",
+    "..oLlllllgggoo..",
+    "..olliwggiwogoo.",
+    "..ollwkggwkgooo.",
+    "..ollgggggggooo.",
+    "..ollggmmmggooo.",
+    "...ocgggggggco..",
+    "....odggggoo....",
+    ".....oddddoo....",
+    "......ooooo.....",
     "................",
     "................",
     "................",
 ]
 
 # ═══════════════════════════════════════════════════
-#  3. ウルフ (Wolf)
+#  3. ウルフ (Wolf) - 正面顔。大きな耳。黄色い目。白いマズル。
 # ═══════════════════════════════════════════════════
 wolf_palette = {
-    'o': (50, 40, 35),       # outline
-    'f': (160, 140, 110),    # fur main
-    'l': (190, 170, 140),    # fur light
-    'd': (120, 100, 75),     # fur dark
-    'w': (230, 220, 200),    # white belly/muzzle
-    'k': (30, 30, 30),       # eye/nose
-    'e': (220, 180, 50),     # eye yellow
-    'n': (40, 30, 30),       # nose
-    'p': (180, 130, 100),    # inner ear
-    't': (200, 190, 170),    # teeth
-    'r': (180, 60, 60),      # tongue
+    'o': (40, 30, 25),       # outline
+    'f': (150, 130, 100),    # fur main
+    'l': (180, 160, 130),    # fur light
+    'd': (100, 85, 65),      # fur dark
+    'w': (235, 225, 210),    # white muzzle
+    'W': (255, 255, 255),    # eye white
+    'k': (25, 25, 30),       # eye/nose dark
+    'e': (240, 200, 50),     # eye yellow
+    'n': (30, 25, 25),       # nose
+    'p': (200, 140, 110),    # inner ear
+    'r': (190, 70, 70),      # tongue
+    'b': (210, 195, 175),    # belly light
 }
 
 wolf_f0 = [
-    ".od..........do.",
-    ".ofd.o....o.dfo.",
-    ".ofpdo....odpfo.",
-    ".ofpfo.oo.ofpfo.",
-    "oofflooddoollfo.",
-    "oofflekffkellfoo",
-    "oofffoknkoffffoo",
-    ".offwwwnwwwffo..",
+    "..od........do..",
+    "..ofd.oooo.dfo..",
+    "..ofpdo..odpfo..",
+    "..ofpfooooofpfo.",
+    ".ooffllffllffoo.",
+    ".oofWefffWefooo.",
+    ".oofkefffkefoo..",
+    "..offwwwnwwfo...",
+    "..ofwwwwwwwfo...",
     "..ofwwwrwwwfo...",
-    "..offwwwwwffo...",
-    "...offffffo.....",
-    "...offffffo.....",
-    "...offdddffo....",
-    "..ofo.of.ofo....",
-    "..oo..oo..oo....",
+    "...ofwwwwwfo....",
+    "...offfffffo....",
+    "...offbbbffo....",
+    "..ofo.ooo.ofo...",
+    "..oo..ooo..oo...",
     "................",
 ]
 
 wolf_f1 = [
-    ".od..........do.",
-    ".ofd.o....o.dfo.",
-    ".ofpdo....odpfo.",
-    ".ofpfo.oo.ofpfo.",
-    "oofflooddoollfo.",
-    "oofflekffkellfoo",
-    "oofffoknkoffffoo",
-    ".offwwwnwwwffo..",
+    "..od........do..",
+    "..ofd.oooo.dfo..",
+    "..ofpdo..odpfo..",
+    "..ofpfooooofpfo.",
+    ".ooffllffllffoo.",
+    ".oofWefffWefooo.",
+    ".oofkefffkefoo..",
+    "..offwwwnwwfo...",
+    "..ofwwwwwwwfo...",
     "..ofwwwrwwwfo...",
-    "..offwwwwwffo...",
-    "...offffffo.....",
-    "...offffffo.....",
-    "...offdddffo....",
-    "...ofo.of.ofo...",
-    "...oo..oo..oo...",
+    "...ofwwwwwfo....",
+    "...offfffffo....",
+    "...offbbbffo....",
+    "...ofo.ooo.ofo..",
+    "...oo..ooo..oo..",
     "................",
 ]
 
 wolf_f2 = [
-    ".od..........do.",
-    ".ofd.o....o.dfo.",
-    ".ofpdo....odpfo.",
-    ".ofpfo.oo.ofpfo.",
-    "oofflooddoollfo.",
-    "oofflekffkellfoo",
-    "oofffoknkoffffoo",
-    ".offwwwnwwwffo..",
+    "..od........do..",
+    "..ofd.oooo.dfo..",
+    "..ofpdo..odpfo..",
+    "..ofpfooooofpfo.",
+    ".ooffllffllffoo.",
+    ".oofWefffWefooo.",
+    ".oofkefffkefoo..",
+    "..offwwwnwwfo...",
+    "..ofwwwwwwwfo...",
     "..ofwwwrwwwfo...",
-    "..offwwwwwffo...",
-    "...offffffo.....",
-    "...offffffo.....",
-    "...offdddffo....",
-    "..ofo.of..ofo...",
-    "..oo..oo...oo...",
+    "...ofwwwwwfo....",
+    "...offfffffo....",
+    "...offbbbffo....",
+    "..ofo.ooo..ofo..",
+    "..oo..ooo...oo..",
     "................",
 ]
 
 # ═══════════════════════════════════════════════════
-#  4. アクマ (Demon)
+#  4. アクマ (Demon) - 大きな角、コウモリ翼、牙
 # ═══════════════════════════════════════════════════
 demon_palette = {
-    'o': (60, 20, 30),       # outline
-    'r': (190, 40, 60),      # body red
+    'o': (50, 15, 25),       # outline
+    'r': (200, 45, 65),      # body red
+    'R': (230, 80, 100),     # light red
     'd': (150, 30, 50),      # dark red
-    'l': (220, 70, 90),      # light red
-    'h': (100, 40, 120),     # horn purple
-    'w': (80, 50, 130),      # wing purple
-    'e': (255, 240, 50),     # eye yellow
-    'k': (30, 20, 20),       # pupil
-    'm': (255, 255, 255),    # mouth/teeth
-    't': (160, 60, 80),      # tail
-    'p': (220, 100, 120),    # cheek
+    'h': (120, 50, 140),     # horn purple
+    'H': (90, 35, 110),      # horn dark
+    'w': (100, 50, 150),     # wing
+    'W': (130, 70, 170),     # wing light
+    'e': (255, 230, 50),     # eye yellow
+    'k': (30, 15, 15),       # pupil
+    'm': (255, 255, 255),    # teeth white
+    't': (180, 60, 80),      # tail
+    'c': (255, 160, 180),    # cheek
+    'p': (170, 35, 55),      # belly
 }
 
 demon_f0 = [
-    "..oh.........ho.",
-    ".ohh..ooo..hho..",
-    ".oh..orrrro.oho.",
-    "oo..orlllrro..oo",
-    "ow.orrekerlro.wo",
-    "ow.orrrkrrrrooow",
-    "ow.oprrrrrrpro.o",
-    "owoorrmmmrrroo..",
-    ".o.orrrrrrrroo..",
+    "..Hh........hH..",
+    "..oh.oooooo.ho..",
+    ".oo.orRRRRro.oo.",
+    ".oo.orRRRRro.oo.",
+    "oWo.orekerro.oWo",
+    "oWoorrkrrrrooowo",
+    "owo.orcrrcrro.oo",
+    "owoorrrmrrrroo..",
+    ".o.orrrmmrrrooo.",
     ".ooorrddddrro...",
-    "...orrrrrrrro...",
-    "...orrrrrrrroo..",
-    "...oordddro.t...",
+    "...orrpppprroo..",
+    "...orrrrrrrrooo.",
+    "...oorrddrro.t..",
     "....oro.orooto..",
-    "....oo..oo.oto..",
-    "...........oo...",
-]
-
-demon_f1 = [
-    "..oh.........ho.",
-    ".ohh..ooo..hho..",
-    ".oh..orrrro.oho.",
-    "oo..orlllrro..oo",
-    "ow.orrekerlro.wo",
-    "ow.orrrkrrrrooow",
-    "ow.oprrrrrrpro.o",
-    "owoorrmmmrrroo..",
-    ".o.orrrrrrrroo..",
-    ".ooorrddddrro...",
-    "...orrrrrrrro...",
-    "...orrrrrrrroo..",
-    "...oordddro..t..",
-    "....oro.oro.oto.",
-    "....oo..oo..oto.",
-    "............oo..",
-]
-
-demon_f2 = [
-    "..oh.........ho.",
-    ".ohh..ooo..hho..",
-    ".oh..orrrro.oho.",
-    "oo..orlllrro..oo",
-    "ow.orrekerlro.wo",
-    "ow.orrrkrrrrooow",
-    "ow.oprrrrrrpro.o",
-    "owoorrmmmrrroo..",
-    ".o.orrrrrrrroo..",
-    ".ooorrddddrro...",
-    "...orrrrrrrro...",
-    "...orrrrrrrroo..",
-    "...oordddro.t...",
-    "...oro.oro.oto..",
-    "...oo..oo..oto..",
-    "...........oo...",
-]
-
-# ═══════════════════════════════════════════════════
-#  5. リュウ (Dragon)
-# ═══════════════════════════════════════════════════
-dragon_palette = {
-    'o': (15, 40, 80),       # outline
-    'b': (50, 120, 220),     # body blue
-    'l': (80, 160, 255),     # light blue
-    'd': (30, 80, 160),      # dark blue
-    'w': (120, 180, 255),    # wing membrane
-    's': (70, 140, 200),     # scales
-    'e': (255, 200, 50),     # eye
-    'k': (20, 20, 30),       # pupil
-    'n': (200, 220, 255),    # belly light
-    'f': (255, 120, 30),     # fire
-    'r': (255, 60, 20),      # fire red
-    'y': (255, 200, 80),     # fire yellow
-    'h': (40, 90, 180),      # horn
-    't': (60, 130, 210),     # tail
-}
-
-dragon_f0 = [
-    "..oh.........ho.",
-    ".ohh..obbo..hho.",
-    ".oh.oblllbbo.ho.",
-    "oo.oblllllbbooo.",
-    "ow.obekbeklbo.wo",
-    "owobbbnnbbbbooow",
-    "ow.obbbbbbbbo.oo",
-    "owoobbsssbbbooo.",
-    "oo.obbbbbbbboo..",
-    "..oobbddddbbo...",
-    "...obbbbbbbboo..",
-    "...obbbbbbbboo..",
-    "...oobbddbo.t...",
-    "....obo.obootoo.",
     "....oo..oo.oo...",
     "................",
 ]
 
-dragon_f1 = [
-    "..oh.........ho.",
-    ".ohh..obbo..hho.",
-    ".oh.oblllbbo.ho.",
-    "oo.oblllllbbooo.",
-    "ow.obekbeklbo.wo",
-    "owobbbnnbbbbooow",
-    "ow.obbbbbbbbo.oo",
-    "owoobbsssbbbooo.",
-    "oo.obbbbbbbboo..",
-    "..oobbddddbbo...",
-    "...obbbbbbbboo..",
-    "...obbbbbbbboo..",
-    "...oobbddbo..t..",
-    "....obo.obo.oto.",
+demon_f1 = [
+    "..Hh........hH..",
+    "..oh.oooooo.ho..",
+    ".oo.orRRRRro.oo.",
+    ".oo.orRRRRro.oo.",
+    "oWo.orekerro.oWo",
+    "oWoorrkrrrrooowo",
+    "owo.orcrrcrro.oo",
+    "owoorrrmrrrroo..",
+    ".o.orrrmmrrrooo.",
+    ".ooorrddddrro...",
+    "...orrpppprroo..",
+    "...orrrrrrrrooo.",
+    "...oorrddrro..t.",
+    "....oro.oro.oto.",
     "....oo..oo..oo..",
+    "................",
+]
+
+demon_f2 = [
+    "..Hh........hH..",
+    "..oh.oooooo.ho..",
+    ".oo.orRRRRro.oo.",
+    ".oo.orRRRRro.oo.",
+    "oWo.orekerro.oWo",
+    "oWoorrkrrrrooowo",
+    "owo.orcrrcrro.oo",
+    "owoorrrmrrrroo..",
+    ".o.orrrmmrrrooo.",
+    ".ooorrddddrro...",
+    "...orrpppprroo..",
+    "...orrrrrrrro...",
+    "...oorrddrroo.t.",
+    "...oro..oro.oto.",
+    "...oo...oo..oo..",
+    "................",
+]
+
+# ═══════════════════════════════════════════════════
+#  5. リュウ (Dragon) - 横向きドラゴン。長い首、翼、火
+# ═══════════════════════════════════════════════════
+dragon_palette = {
+    'o': (10, 35, 70),       # outline
+    'b': (45, 110, 210),     # body blue
+    'l': (80, 155, 245),     # light blue
+    'L': (120, 185, 255),    # lightest blue
+    'd': (25, 70, 150),      # dark blue
+    'w': (140, 200, 255),    # wing membrane
+    'W': (100, 170, 240),    # wing darker
+    's': (60, 130, 195),     # scale
+    'e': (255, 210, 50),     # eye
+    'k': (15, 15, 25),       # pupil
+    'n': (200, 225, 255),    # belly
+    'f': (255, 130, 30),     # fire orange
+    'F': (255, 60, 20),      # fire red
+    'Y': (255, 220, 80),     # fire yellow
+    'h': (35, 80, 170),      # horn
+    't': (55, 120, 200),     # tail
+}
+
+dragon_f0 = [
+    "wWo..........oWw",
+    "wWWo..ohho..oWWw",
+    ".wWo.oblbbo.oWw.",
+    ".oo.oblLLlbo.oo.",
+    ".oo.obeklkebo.o.",
+    "...oobbbkbbbbo..",
+    "...oobbbbbbbbo..",
+    "...oobbbssbbbo..",
+    "....obbbbbbbo...",
+    "....obddddbo....",
+    "....obnnnnbo....",
+    "....obbbbbbot...",
+    ".....obdboo.ot..",
+    "....obo.obo..oo.",
+    "....oo...oo.....",
+    "................",
+]
+
+dragon_f1 = [
+    "wWo..........oWw",
+    "wWWo..ohho..oWWw",
+    ".wWo.oblbbo.oWw.",
+    ".oo.oblLLlbo.oo.",
+    ".oo.obeklkebo.o.",
+    "...oobbbkbbbbo..",
+    "...oobbbbbbbbo..",
+    "...oobbbssbbbo..",
+    "....obbbbbbbo...",
+    "....obddddbo....",
+    "....obnnnnbo....",
+    "....obbbbbbot...",
+    ".....obdboo..ot.",
+    "....obo.obo..oo.",
+    "....oo...oo.....",
     "................",
 ]
 
 dragon_f2 = [
-    "..oh.........ho.",
-    ".ohh..obbo..hho.",
-    ".oh.oblllbbo.ho.",
-    "oo.oblllllbbooo.",
-    "ow.obekbeklbo.wo",
-    "owobbbnnbbbbooow",
-    "ow.obbbbbbbbo.oo",
-    "owoobbsssbbbooo.",
-    "oo.obbbbbbbboo..",
-    "..oobbddddbbo...",
-    "...obbbbbbbbo...",
-    "...obbbbbbbboo..",
-    "...oobbddboo.t..",
-    "...obo.obo..oto.",
-    "...oo..oo...oo..",
+    "wWo..........oWw",
+    "wWWo..ohho..oWWw",
+    ".wWo.oblbbo.oWw.",
+    ".oo.oblLLlbo.oo.",
+    ".oo.obeklkebo.o.",
+    "...oobbbkbbbbo..",
+    "...oobbbbbbbbo..",
+    "...oobbbssbbbo..",
+    "....obbbbbbbo...",
+    "....obddddbo....",
+    "....obnnnnbo....",
+    "....obbbbbbot...",
+    ".....obdboo.ot..",
+    "...obo..obo..oo.",
+    "...oo....oo.....",
     "................",
 ]
 
 # ═══════════════════════════════════════════════════
-#  6. シンリュウ (God Dragon)
+#  6. シンリュウ (God Dragon) - 金色、王冠、オーラ
 # ═══════════════════════════════════════════════════
 goddragon_palette = {
-    'o': (100, 70, 10),      # outline gold-dark
+    'o': (90, 65, 10),       # outline gold-dark
     'g': (255, 200, 50),     # body gold
-    'l': (255, 230, 100),    # light gold
+    'l': (255, 225, 100),    # light gold
+    'L': (255, 240, 150),    # lightest gold
     'd': (200, 150, 30),     # dark gold
-    'w': (255, 240, 150),    # wing light
-    's': (230, 180, 40),     # scales
+    'w': (255, 235, 130),    # wing light
+    'W': (230, 185, 50),     # wing mid
+    's': (220, 170, 35),     # scales
     'e': (255, 50, 50),      # eye red
     'k': (30, 10, 10),       # pupil
     'n': (255, 245, 200),    # belly
-    'h': (220, 160, 30),     # horn
-    'a': (255, 255, 200),    # aura/halo
-    'f': (255, 100, 30),     # fire
-    'r': (255, 50, 20),      # fire red
-    'c': (180, 220, 255),    # crystal/jewel
-    't': (230, 170, 30),     # tail
+    'h': (210, 155, 25),     # horn
+    'a': (255, 255, 220),    # aura/crown
+    'c': (100, 200, 255),    # crystal/gem
+    't': (220, 165, 25),     # tail
+    'C': (160, 230, 255),    # crystal bright
 }
 
 goddragon_f0 = [
-    ".aoh....a....hoa",
-    "aohh.aoggoa.hhoa",
-    ".oh.ogllllggo.ho",
-    "oo.ogllnllggooo.",
-    "ow.ogekceglgo.wo",
-    "owogggnnggggooow",
-    "ow.ogssgssgo..oo",
-    "owooggsssgggoo..",
-    "oo.oggggggggooo.",
-    "..ooggddddggo...",
-    "...oggggggggooo.",
-    "...oggggggggoo..",
-    "...ooggddgoo.t..",
-    "....ogo.ogo.oto.",
-    "....oo..oo..oo..",
+    "wWo...aCCCa..oWw",
+    "wWWoh.oggo.hoWWw",
+    ".wWo.ogLlgo.oWw.",
+    ".oo.ogLcLlgo.oo.",
+    ".oo.ogeklkego.o.",
+    "...oogggkggggo..",
+    "...ooggggggggoo.",
+    "...oogggsssggo..",
+    "....oggggggggo..",
+    "....ogddddgo....",
+    "....ognnnngoo...",
+    "....oggggggot...",
+    ".....ogddgoo.ot.",
+    "....ogo..ogo.oo.",
+    "....oo....oo....",
     "................",
 ]
 
 goddragon_f1 = [
-    "..oh....a....ho.",
-    "aohh.aoggoa.hhoa",
-    ".oh.ogllllggo.ho",
-    "oo.ogllnllggooo.",
-    "ow.ogekceglgo.wo",
-    "owogggnnggggooow",
-    "ow.ogssgssgo..oo",
-    "owooggsssgggoo..",
-    "oo.oggggggggooo.",
-    "..ooggddddggo...",
-    "...oggggggggooo.",
-    "...oggggggggoo..",
-    "...ooggddgoo..t.",
-    "....ogo.ogo..oto",
-    "....oo..oo...oo.",
+    "wWo...aCCCa..oWw",
+    "wWWoh.oggo.hoWWw",
+    ".wWo.ogLlgo.oWw.",
+    ".oo.ogLcLlgo.oo.",
+    ".oo.ogeklkego.o.",
+    "...oogggkggggo..",
+    "...ooggggggggoo.",
+    "...oogggsssggo..",
+    "....oggggggggo..",
+    "....ogddddgo....",
+    "....ognnnngoo...",
+    "....oggggggot...",
+    ".....ogddgoo..ot",
+    "....ogo..ogo..oo",
+    "....oo....oo....",
     "................",
 ]
 
 goddragon_f2 = [
-    "a.oh.....a...hoa",
-    "aohh.aoggoa.hhoa",
-    ".oh.ogllllggo.ho",
-    "oo.ogllnllggooo.",
-    "ow.ogekceglgo.wo",
-    "owogggnnggggooow",
-    "ow.ogssgssgo..oo",
-    "owooggsssgggoo..",
-    "oo.oggggggggooo.",
-    "..ooggddddggo...",
-    "...oggggggggo...",
-    "...oggggggggoo..",
-    "...ooggddgo..t..",
-    "...ogo.ogo..oto.",
-    "...oo..oo...oo..",
+    "wWo...aCCCa..oWw",
+    "wWWoh.oggo.hoWWw",
+    ".wWo.ogLlgo.oWw.",
+    ".oo.ogLcLlgo.oo.",
+    ".oo.ogeklkego.o.",
+    "...oogggkggggo..",
+    "...ooggggggggoo.",
+    "...oogggsssggo..",
+    "....oggggggggo..",
+    "....ogddddgo....",
+    "....ognnnngoo...",
+    "....oggggggooto.",
+    ".....ogddgoo.ot.",
+    "...ogo...ogo.oo.",
+    "...oo.....oo....",
     "................",
 ]
 
@@ -504,16 +511,13 @@ characters = [
 
 os.makedirs(ART_DIR, exist_ok=True)
 
-for name, palette, frames in characters:
-    print(f"\n[{name}]")
-    # clean (default = frame 0)
-    art = render_ansi(frames[0], palette)
-    save_art(f"{name}_clean.txt", art)
-    # ANSI version (same)
-    save_art(f"{name}_ansi.txt", art)
-    # 3 animation frames
-    for i, frame in enumerate(frames):
-        art = render_ansi(frame, palette)
-        save_art(f"{name}_f{i}_clean.txt", art)
-
-print("\nAll art generated!")
+if __name__ == '__main__':
+    for name, palette, frames in characters:
+        print(f"\n[{name}]")
+        art = render_ansi(frames[0], palette)
+        save_art(f"{name}_clean.txt", art)
+        save_art(f"{name}_ansi.txt", art)
+        for i, frame in enumerate(frames):
+            art = render_ansi(frame, palette)
+            save_art(f"{name}_f{i}_clean.txt", art)
+    print("\nAll art generated!")
