@@ -18,6 +18,7 @@ BG_COLOR = (30, 30, 35)  # ダーク背景
 LABEL_HEIGHT = 40
 
 labels = {
+    'cutecat': 'キュートねこ (Cute Cat)',
     'egg': 'こたま (Kotama)',
     'slime': 'こねこ (Koneko)',
     'wolf': 'さんぽ (Sanpo)',
@@ -48,7 +49,7 @@ def main():
     char_w = 16 * PIXEL_SIZE + PADDING * 2
     char_h = 16 * PIXEL_SIZE + LABEL_HEIGHT + PADDING * 2
 
-    cols = 3
+    cols = 4
     rows = 2
     total_w = cols * char_w + PADDING
     total_h = rows * char_h + PADDING

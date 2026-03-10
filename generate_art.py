@@ -55,6 +55,55 @@ def save_art(name, content):
 #  共通: o=outline, f=fur, l=light fur, k=eye, p=inner ear
 # ═══════════════════════════════════════════════════
 
+# ─── 0. キュートねこ (Cute Cat with big eyes, jumping) ───
+cutecat_palette = {
+    'o': (45, 45, 50),
+    'f': (255, 255, 255),
+    'l': (235, 235, 240),
+    'p': (255, 150, 180),
+    'b': (30, 200, 255),
+    'k': (15, 15, 25),
+}
+
+cutecat_f0 = [
+    "................",
+    "................",
+    "...oooo....oooo.",
+    "..opoooffffooopo",
+    ".oofffffffffffoo",
+    ".offbffffffbffo.",
+    ".offkkffffkkffo.",
+    ".offfffffffffffo",
+    "..offfoooffooffo",
+    "...oo....oo...oo",
+]
+
+cutecat_f1 = [
+    "....oo....oo....",
+    "...opo....opo...",
+    "..oofffoooofffo.",
+    ".oofffffffffffoo",
+    ".offbffffffbffo.",
+    ".offkkffffkkffo.",
+    ".ooffffffffffffo",
+    "ooffffffffffffo.",
+    "ofooofffoooffoo.",
+    "o...oo....oo....",
+]
+
+cutecat_f2 = [
+    "................",
+    "....oo....oo....",
+    "...opo....opo...",
+    "..oofffoooofffo.",
+    "..offfffffffffo.",
+    "..offbbffffbbfo.",
+    "..offkkffffkkfo.",
+    "..offfffffffffo.",
+    "...oofff.oofffo.",
+    "....oo....oo....",
+]
+
 # ─── 1. こたま (Cream kitten - sitting, pawing at something) ───
 cat1_palette = {
     'o': (160, 135, 90),
@@ -298,6 +347,7 @@ cat6_f2 = [
 #  生成実行
 # ═══════════════════════════════════════════════════
 characters = [
+    ("cutecat",   cutecat_palette, [cutecat_f0, cutecat_f1, cutecat_f2]),
     ("egg",       cat1_palette, [cat1_f0, cat1_f1, cat1_f2]),
     ("slime",     cat2_palette, [cat2_f0, cat2_f1, cat2_f2]),
     ("wolf",      cat3_palette, [cat3_f0, cat3_f1, cat3_f2]),

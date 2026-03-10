@@ -34,7 +34,7 @@ mkdir -p "$HOME/.claude/monster/art"
 echo "  ✓ セーブデータ領域を作成"
 
 # ─── アートファイルをコピー（3フレームアニメーション） ───
-for f in egg slime wolf demon dragon goddragon; do
+for f in cutecat egg slime wolf demon dragon goddragon; do
   for i in 0 1 2; do
     src="$SCRIPT_DIR/assets/${f}_f${i}_clean.txt"
     if [[ -f "$src" ]]; then
