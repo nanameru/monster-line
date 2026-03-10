@@ -62,60 +62,15 @@ p4 = { 'o':(10,10,15),  'f':(50,50,60),    'w':(255,255,255), 'b':(200,80,255), 
 p5 = { 'o':(80,30,50),  'f':(255,140,200), 'w':(255,255,255), 'b':(255,240,100), 'K':(50,15,30),  'P':(255,200,220) } # ぴょんピンク
 p6 = { 'o':(100,70,10), 'f':(255,210,60),  'w':(255,255,255), 'b':(255,100,100), 'K':(60,30,10),  'P':(255,150,120) } # ボスねこ黄金
 
-# ─── 1. egg = ぐっすり白猫 (Sleeping, tail twitch) ───
-cat1_f0 = [
-    "................",
-    "...oo......oo...",
-    "..oPPo....oPPo..",
-    "..offooooooffo..",
-    ".ooffffffffffoo.",
-    ".offffffffffffo.",
-    ".offbwffffbwffo.",
-    ".offbKffffbKffo.",
-    ".ooffffffffffoo.",
-    "..oooffffffooo..",
-    "...ooffffffoo...",
-    "..ooffffffffoooo",
-    "..offfoofffoffoo",
-    "..offo.offo.oooo",
-    "...oo...oo......",
-    "................",
-]
-cat1_f1 = [
-    "................",
-    "...oo......oo...",
-    "..oPPo....oPPo..",
-    "..offooooooffo..",
-    ".ooffffffffffoo.",
-    ".offffffffffffo.",
-    ".offffffffffffo.",
-    ".offooffffooffo.",
-    ".ooffffffffffoo.",
-    "..oooffffffooo..",
-    "...ooffffffoooo.",
-    "..ooffffffffoo..",
-    "..offfoofffoffo.",
-    "..offo.offo.offo",
-    "...oo...oo...oo.",
-    "................",
-]
-cat1_f2 = [
-    "................",
-    "...oo......oo...",
-    "..oPPo....oPPo..",
-    "..offooooooffo..",
-    ".ooffffffffffoo.",
-    ".offffffffffffo.",
-    ".offbwffffbwffo.",
-    ".offbKffffbKffo.",
-    ".ooffffffffffoo.",
-    "..oooffffffoooo.",
-    "...ooffffffoo...",
-    "..ooffffffffoo..",
-    "..offfoofffoffo.",
-    "..offo.offo.offo",
-    "...oo...oo...oo.",
-    "................",
+# ─── 1. egg = ぐっすり白猫 (テキストアスキーアート猫) ───
+# テキストベースのアスキーアートなのでピクセルグリッドではなく直接テキスト出力
+cat1_text_frames = [
+    # Frame 0: 通常
+    "　 ﾊ,_,ﾊ\n　 ,;ﾞ ･ω･ ﾞ;\n 〜(;;っ  ⊂ ,ﾐ\n 　     \" \"ﾞ\"\n",
+    # Frame 1: 目を閉じる
+    "　 ﾊ,_,ﾊ\n　 ,;ﾞ -ω- ﾞ;\n 〜(;;っ  ⊂ ,ﾐ\n 　     \" \"ﾞ\"\n",
+    # Frame 2: 少し動く
+    "　 ﾊ,_,ﾊ\n　 ,;ﾞ ･ω･ ﾞ;\n〜(;;っ   ⊂ ,ﾐ\n 　     \" \"ﾞ\"\n",
 ]
 
 # ─── 2. slime = おすわり茶トラ (Sitting/melting round cat) ───
@@ -402,7 +357,6 @@ cat6_f2 = [
 #  生成実行
 # ═══════════════════════════════════════════════════
 characters = [
-    ("egg",       p1, [cat1_f0, cat1_f1, cat1_f2]),
     ("slime",     p2, [cat2_f0, cat2_f1, cat2_f2]),
     ("wolf",      p3, [cat3_f0, cat3_f1, cat3_f2]),
     ("demon",     p4, [cat4_f0, cat4_f1, cat4_f2]),
@@ -413,6 +367,13 @@ characters = [
 os.makedirs(ART_DIR, exist_ok=True)
 
 if __name__ == '__main__':
+    # egg はテキストベースのアスキーアートなので直接書き出し
+    print("[egg]")
+    save_art("egg_clean.txt", cat1_text_frames[0])
+    save_art("egg_ansi.txt", cat1_text_frames[0])
+    for i, frame_text in enumerate(cat1_text_frames):
+        save_art(f"egg_f{i}_clean.txt", frame_text)
+
     for name, palette, frames in characters:
         print(f"[{name}]")
         art = render_ansi(frames[0], palette)
