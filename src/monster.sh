@@ -77,12 +77,12 @@ R="\x1b[0m"
 
 # ─── ステージ情報 ───
 case $stage in
-  1) c1=$(fg 225 200 170) c2=$(fg 245 235 215) label="タマゴ"     art_file="egg"       ;;
-  2) c1=$(fg 60 200 100)  c2=$(fg 120 255 150) label="スライム"   art_file="slime"     ;;
-  3) c1=$(fg 180 150 100) c2=$(fg 220 200 160) label="ウルフ"     art_file="wolf"      ;;
-  4) c1=$(fg 190 40 60)   c2=$(fg 255 80 100)  label="アクマ"     art_file="demon"     ;;
-  5) c1=$(fg 50 120 220)  c2=$(fg 100 170 255) label="リュウ"     art_file="dragon"    ;;
-  6) c1=$(fg 255 200 30)  c2=$(fg 255 240 120) label="シンリュウ" art_file="goddragon" ;;
+  1) c1=$(fg 225 200 170) c2=$(fg 245 235 215) label="こたま"     art_file="egg"       ;;
+  2) c1=$(fg 245 170 65)  c2=$(fg 255 205 110) label="こねこ"     art_file="slime"     ;;
+  3) c1=$(fg 155 155 165) c2=$(fg 195 195 205) label="さんぽ"     art_file="wolf"      ;;
+  4) c1=$(fg 60 60 65)    c2=$(fg 90 90 100)   label="ハンター"   art_file="demon"     ;;
+  5) c1=$(fg 135 155 180) c2=$(fg 175 195 220) label="にんじゃ"   art_file="dragon"    ;;
+  6) c1=$(fg 245 205 85)  c2=$(fg 255 235 140) label="ボスねこ"   art_file="goddragon" ;;
 esac
 
 ui=$(fg 90 90 100)

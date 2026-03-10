@@ -1,8 +1,7 @@
 #!/usr/bin/env python3
 """
-monster-line キャラクター ピクセルアート生成スクリプト v2
-16x16 ピクセルグリッドから ANSI半ブロック文字アートを生成
-画像プレビューから改善: 大きな目、明確なシルエット、キャラ毎の個性
+monster-line キャラクター ピクセルアート生成スクリプト v5
+全ステージ猫！ 小さく全身を表示、遊んでいる感じ
 """
 
 import os
@@ -10,16 +9,19 @@ import os
 ART_DIR = os.path.join(os.path.dirname(__file__), "assets")
 
 def render_ansi(grid, palette):
-    """16x16 pixel grid → 8-line ANSI art (using ▄ half-blocks)"""
+    """pixel grid → ANSI half-block art, trailing blank lines trimmed"""
+    height = len(grid)
+    if height % 2 != 0:
+        grid = grid + ["." * len(grid[0])]
+        height += 1
     lines = []
-    for row in range(0, 16, 2):
+    for row in range(0, height, 2):
         line = ""
-        for col in range(16):
-            top_ch = grid[row][col] if row < len(grid) and col < len(grid[row]) else '.'
-            bot_ch = grid[row+1][col] if row+1 < len(grid) and col < len(grid[row+1]) else '.'
+        for col in range(len(grid[0])):
+            top_ch = grid[row][col]
+            bot_ch = grid[row+1][col]
             top_color = palette.get(top_ch)
             bot_color = palette.get(bot_ch)
-
             if top_color is None and bot_color is None:
                 line += " "
             elif top_color is None and bot_color is not None:
@@ -36,6 +38,9 @@ def render_ansi(grid, palette):
                 br, bg, bb = bot_color
                 line += f"\x1b[38;2;{br};{bg};{bb};48;2;{tr};{tg};{tb}m▄\x1b[0m"
         lines.append(line)
+    # Trim trailing blank lines
+    while lines and lines[-1].strip() == '':
+        lines.pop()
     return "\n".join(lines) + "\n"
 
 
@@ -43,481 +48,273 @@ def save_art(name, content):
     path = os.path.join(ART_DIR, name)
     with open(path, 'w') as f:
         f.write(content)
-    print(f"  Generated: {name}")
+    print(f"  {name}")
 
 
 # ═══════════════════════════════════════════════════
-#  1. タマゴ (Egg) - 純粋なたまご。顔なし。ヒビ模様のみ。
+#  共通: o=outline, f=fur, l=light fur, k=eye, p=inner ear
 # ═══════════════════════════════════════════════════
-egg_palette = {
-    'o': (80, 65, 45),       # outline
-    'e': (255, 240, 210),    # shell main
-    's': (245, 225, 190),    # shell shade
-    'c': (180, 155, 120),    # crack
-    'h': (255, 250, 235),    # highlight
+
+# ─── 1. こたま (Cream kitten - sitting, pawing at something) ───
+cat1_palette = {
+    'o': (160, 135, 90),
+    'f': (255, 240, 210),
+    'l': (255, 250, 235),
+    'k': (40, 40, 50),
+    'p': (245, 190, 190),
+    't': (255, 235, 200),
 }
 
-egg_f0 = [
-    "................",
-    "......oooo......",
-    "....oohhhsoo....",
-    "...ohhhhhssso...",
-    "..oessssssseso..",
-    "..oessssssseso..",
-    "..oessssssseso..",
-    "..oessssssseso..",
-    "..oessssssseso..",
-    "..oesscsssseso..",
-    "..oesscssseso...",
-    "..oesssssseso...",
-    "...oesssssso....",
-    "....oesssso.....",
-    ".....oooooo.....",
-    "................",
+cat1_f0 = [
+    ".....oo.oo......",
+    ".....olfflo.....",
+    ".....okffkofo...",
+    "......offffooo..",
+    "......offffo....",
+    ".....off..fo.t..",
+    "......oo..oo.o..",
 ]
 
-egg_f1 = [
-    "................",
-    "......oooo......",
-    "....oohhhsoo....",
-    "...ohhhhhssso...",
-    "..oessssssseso..",
-    "..oessssssseso..",
-    "..oessssssseso..",
-    "..oessssssseso..",
-    "..oessssssseso..",
-    "..oesscsssseso..",
-    "..oesscssseso...",
-    "..oesssssseso...",
-    "...oesssssso....",
-    "....oesssso.....",
-    ".....oooooo.....",
-    "................",
+cat1_f1 = [
+    ".....oo.oo.fo...",
+    ".....olfflooo...",
+    ".....okffko.....",
+    "......offffo....",
+    "......offffo....",
+    ".....off..fo.t..",
+    "......oo..oo.o..",
 ]
 
-egg_f2 = [
-    "................",
-    "......oooo......",
-    "....oohhhsoo....",
-    "...ohhhhhssso...",
-    "..oessssssseso..",
-    "..oessssssseso..",
-    "..oessssssseso..",
-    "..oessssssseso..",
-    "..oessssssseso..",
-    "..oesscsssseso..",
-    "..oesscssseso...",
-    "..oesssssseso...",
-    "...oesssssso....",
-    "....oesssso.....",
-    "......oooooo....",
-    "................",
+cat1_f2 = [
+    ".....oo.oo......",
+    ".....olfflo.....",
+    ".....okffko.....",
+    "......offffo....",
+    "......offffo....",
+    ".....off.ofo.t..",
+    "......oo.oo..o..",
 ]
 
-# ═══════════════════════════════════════════════════
-#  2. スライム (Slime) - ドラクエ風。大きな目＋にっこり口
-# ═══════════════════════════════════════════════════
-slime_palette = {
-    'o': (15, 70, 25),       # outline
-    'g': (50, 190, 90),      # body
-    'l': (90, 220, 130),     # light body
-    'L': (130, 240, 160),    # lightest/top
-    'd': (30, 140, 60),      # dark body
-    'w': (255, 255, 255),    # eye white
-    'k': (20, 20, 30),       # pupil
-    'i': (180, 220, 255),    # eye highlight
-    'm': (200, 60, 80),      # mouth
-    'c': (255, 150, 170),    # cheek
+# ─── 2. こねこ (Orange kitten - running/chasing) ───
+cat2_palette = {
+    'o': (165, 95, 20),
+    'f': (245, 170, 65),
+    'l': (255, 205, 110),
+    'k': (40, 35, 30),
+    'p': (245, 185, 185),
+    't': (240, 155, 50),
 }
 
-slime_f0 = [
-    "................",
-    "......oggo......",
-    ".....oLLLgo.....",
-    "....oLLLlggo....",
-    "...oLllllgggo...",
-    "..olllggggggoo..",
-    "..oliwggiwogooo.",
-    "..olwkggwkgooo..",
-    "..olggggggggoo..",
-    "..olggmmmmggoo..",
-    "..ocggggggggco..",
-    "...odggggggoo...",
-    "....odddddoo....",
-    ".....oooooo.....",
-    "................",
-    "................",
+cat2_f0 = [
+    "....oo.oo.......",
+    "....olfflo......",
+    "....okffko......",
+    ".....offffot....",
+    ".....offffo.....",
+    "....of..fo......",
+    "....oo..oo......",
 ]
 
-slime_f1 = [
-    "................",
-    "................",
-    "......oggo......",
-    ".....oLLLgo.....",
-    "....oLLLlggo....",
-    "...oLllllgggo...",
-    "..olllggggggoo..",
-    "..oliwggiwogooo.",
-    "..olwkggwkgooo..",
-    "..olggggggggoo..",
-    "..olggmmmmggoo..",
-    "..ocggggggggco..",
-    "...odddddddoo..",
-    "....ooooooo.....",
-    "................",
-    "................",
+cat2_f1 = [
+    "....oo.oo.......",
+    "....olfflo......",
+    "....okffko......",
+    ".....offffo.....",
+    ".....offffot....",
+    "....of.ofo......",
+    "....oo.oo.......",
 ]
 
-slime_f2 = [
-    "................",
-    ".....oggggo.....",
-    "....oLLLlggo....",
-    "...oLLlllgggo...",
-    "..oLlllllgggoo..",
-    "..olliwggiwogoo.",
-    "..ollwkggwkgooo.",
-    "..ollgggggggooo.",
-    "..ollggmmmggooo.",
-    "...ocgggggggco..",
-    "....odggggoo....",
-    ".....oddddoo....",
-    "......ooooo.....",
-    "................",
-    "................",
-    "................",
+cat2_f2 = [
+    "....oo.oo.......",
+    "....olfflo......",
+    "....okffko.fo...",
+    ".....offffooo...",
+    ".....offffo.....",
+    "....of..fo......",
+    "....oo..oo......",
 ]
 
-# ═══════════════════════════════════════════════════
-#  3. ウルフ (Wolf) - 正面顔。大きな耳。黄色い目。白いマズル。
-# ═══════════════════════════════════════════════════
-wolf_palette = {
-    'o': (40, 30, 25),       # outline
-    'f': (150, 130, 100),    # fur main
-    'l': (180, 160, 130),    # fur light
-    'd': (100, 85, 65),      # fur dark
-    'w': (235, 225, 210),    # white muzzle
-    'W': (255, 255, 255),    # eye white
-    'k': (25, 25, 30),       # eye/nose dark
-    'e': (240, 200, 50),     # eye yellow
-    'n': (30, 25, 25),       # nose
-    'p': (200, 140, 110),    # inner ear
-    'r': (190, 70, 70),      # tongue
-    'b': (210, 195, 175),    # belly light
+# ─── 3. さんぽ (Grey tabby - walking/trotting) ───
+cat3_palette = {
+    'o': (80, 80, 90),
+    'f': (155, 155, 165),
+    'l': (195, 195, 205),
+    'd': (115, 115, 125),
+    'k': (40, 40, 55),
+    'p': (200, 165, 165),
+    't': (145, 145, 155),
 }
 
-wolf_f0 = [
-    "..od........do..",
-    "..ofd.oooo.dfo..",
-    "..ofpdo..odpfo..",
-    "..ofpfooooofpfo.",
-    ".ooffllffllffoo.",
-    ".oofWefffWefooo.",
-    ".oofkefffkefoo..",
-    "..offwwwnwwfo...",
-    "..ofwwwwwwwfo...",
-    "..ofwwwrwwwfo...",
-    "...ofwwwwwfo....",
-    "...offfffffo....",
-    "...offbbbffo....",
-    "..ofo.ooo.ofo...",
-    "..oo..ooo..oo...",
-    "................",
+cat3_f0 = [
+    ".....oo.oo......",
+    ".....oldflo.....",
+    ".....okffko.....",
+    "....ooffffooo...",
+    "...of......fot..",
+    "...oo......oo.o.",
 ]
 
-wolf_f1 = [
-    "..od........do..",
-    "..ofd.oooo.dfo..",
-    "..ofpdo..odpfo..",
-    "..ofpfooooofpfo.",
-    ".ooffllffllffoo.",
-    ".oofWefffWefooo.",
-    ".oofkefffkefoo..",
-    "..offwwwnwwfo...",
-    "..ofwwwwwwwfo...",
-    "..ofwwwrwwwfo...",
-    "...ofwwwwwfo....",
-    "...offfffffo....",
-    "...offbbbffo....",
-    "...ofo.ooo.ofo..",
-    "...oo..ooo..oo..",
-    "................",
+cat3_f1 = [
+    ".....oo.oo......",
+    ".....oldflo.....",
+    ".....okffko.....",
+    "...oooffffooo...",
+    "...of......fo.t.",
+    "...oo......oo.o.",
 ]
 
-wolf_f2 = [
-    "..od........do..",
-    "..ofd.oooo.dfo..",
-    "..ofpdo..odpfo..",
-    "..ofpfooooofpfo.",
-    ".ooffllffllffoo.",
-    ".oofWefffWefooo.",
-    ".oofkefffkefoo..",
-    "..offwwwnwwfo...",
-    "..ofwwwwwwwfo...",
-    "..ofwwwrwwwfo...",
-    "...ofwwwwwfo....",
-    "...offfffffo....",
-    "...offbbbffo....",
-    "..ofo.ooo..ofo..",
-    "..oo..ooo...oo..",
-    "................",
+cat3_f2 = [
+    ".....oo.oo......",
+    ".....oldflo.....",
+    ".....okffko.....",
+    "....ooffffooo...",
+    "....of....fo..t.",
+    "....oo....oo..o.",
 ]
 
-# ═══════════════════════════════════════════════════
-#  4. アクマ (Demon) - 大きな角、コウモリ翼、牙
-# ═══════════════════════════════════════════════════
-demon_palette = {
-    'o': (50, 15, 25),       # outline
-    'r': (200, 45, 65),      # body red
-    'R': (230, 80, 100),     # light red
-    'd': (150, 30, 50),      # dark red
-    'h': (120, 50, 140),     # horn purple
-    'H': (90, 35, 110),      # horn dark
-    'w': (100, 50, 150),     # wing
-    'W': (130, 70, 170),     # wing light
-    'e': (255, 230, 50),     # eye yellow
-    'k': (30, 15, 15),       # pupil
-    'm': (255, 255, 255),    # teeth white
-    't': (180, 60, 80),      # tail
-    'c': (255, 160, 180),    # cheek
-    'p': (170, 35, 55),      # belly
+# ─── 4. ハンター (Black cat - crouching/pouncing) ───
+cat4_palette = {
+    'o': (25, 25, 30),
+    'f': (60, 60, 65),
+    'l': (90, 90, 100),
+    'k': (110, 225, 100),    # green eyes!
+    'p': (155, 105, 105),
+    't': (55, 55, 60),
 }
 
-demon_f0 = [
-    "..Hh........hH..",
-    "..oh.oooooo.ho..",
-    ".oo.orRRRRro.oo.",
-    ".oo.orRRRRro.oo.",
-    "oWo.orekerro.oWo",
-    "oWoorrkrrrrooowo",
-    "owo.orcrrcrro.oo",
-    "owoorrrmrrrroo..",
-    ".o.orrrmmrrrooo.",
-    ".ooorrddddrro...",
-    "...orrpppprroo..",
-    "...orrrrrrrrooo.",
-    "...oorrddrro.t..",
-    "....oro.orooto..",
-    "....oo..oo.oo...",
+cat4_f0 = [
     "................",
+    "....oo.oo.......",
+    "....olfflo......",
+    "....okffko......",
+    ".....offffffft..",
+    "...ooffffffffft.",
+    "...of.....of.ot.",
+    "...oo.....oo.o..",
 ]
 
-demon_f1 = [
-    "..Hh........hH..",
-    "..oh.oooooo.ho..",
-    ".oo.orRRRRro.oo.",
-    ".oo.orRRRRro.oo.",
-    "oWo.orekerro.oWo",
-    "oWoorrkrrrrooowo",
-    "owo.orcrrcrro.oo",
-    "owoorrrmrrrroo..",
-    ".o.orrrmmrrrooo.",
-    ".ooorrddddrro...",
-    "...orrpppprroo..",
-    "...orrrrrrrrooo.",
-    "...oorrddrro..t.",
-    "....oro.oro.oto.",
-    "....oo..oo..oo..",
+cat4_f1 = [
     "................",
+    "....oo.oo.......",
+    "....olfflo......",
+    "....okffko......",
+    ".....offfffft...",
+    "..oooffffffffft.",
+    "...of....of..ot.",
+    "...oo....oo...o.",
 ]
 
-demon_f2 = [
-    "..Hh........hH..",
-    "..oh.oooooo.ho..",
-    ".oo.orRRRRro.oo.",
-    ".oo.orRRRRro.oo.",
-    "oWo.orekerro.oWo",
-    "oWoorrkrrrrooowo",
-    "owo.orcrrcrro.oo",
-    "owoorrrmrrrroo..",
-    ".o.orrrmmrrrooo.",
-    ".ooorrddddrro...",
-    "...orrpppprroo..",
-    "...orrrrrrrro...",
-    "...oorrddrroo.t.",
-    "...oro..oro.oto.",
-    "...oo...oo..oo..",
+cat4_f2 = [
     "................",
+    "..oo.oo.........",
+    "..olfflo........",
+    "..okffko........",
+    "...offffffffft..",
+    ".....of...of.ot.",
+    ".....oo...oo.o..",
 ]
 
-# ═══════════════════════════════════════════════════
-#  5. リュウ (Dragon) - 横向きドラゴン。長い首、翼、火
-# ═══════════════════════════════════════════════════
-dragon_palette = {
-    'o': (10, 35, 70),       # outline
-    'b': (45, 110, 210),     # body blue
-    'l': (80, 155, 245),     # light blue
-    'L': (120, 185, 255),    # lightest blue
-    'd': (25, 70, 150),      # dark blue
-    'w': (140, 200, 255),    # wing membrane
-    'W': (100, 170, 240),    # wing darker
-    's': (60, 130, 195),     # scale
-    'e': (255, 210, 50),     # eye
-    'k': (15, 15, 25),       # pupil
-    'n': (200, 225, 255),    # belly
-    'f': (255, 130, 30),     # fire orange
-    'F': (255, 60, 20),      # fire red
-    'Y': (255, 220, 80),     # fire yellow
-    'h': (35, 80, 170),      # horn
-    't': (55, 120, 200),     # tail
+# ─── 5. にんじゃ (Blue-grey cat - jumping) ───
+cat5_palette = {
+    'o': (60, 70, 90),
+    'f': (135, 155, 180),
+    'l': (175, 195, 220),
+    'k': (40, 40, 60),
+    'p': (195, 165, 175),
+    't': (125, 145, 170),
 }
 
-dragon_f0 = [
-    "wWo..........oWw",
-    "wWWo..ohho..oWWw",
-    ".wWo.oblbbo.oWw.",
-    ".oo.oblLLlbo.oo.",
-    ".oo.obeklkebo.o.",
-    "...oobbbkbbbbo..",
-    "...oobbbbbbbbo..",
-    "...oobbbssbbbo..",
-    "....obbbbbbbo...",
-    "....obddddbo....",
-    "....obnnnnbo....",
-    "....obbbbbbot...",
-    ".....obdboo.ot..",
-    "....obo.obo..oo.",
-    "....oo...oo.....",
+cat5_f0 = [
+    ".....oo.oo......",
+    ".....olfflo.....",
+    ".....okffko.....",
+    "......offfft....",
+    "......offfft....",
+    ".....off.off....",
+    "......oo..oo....",
+]
+
+cat5_f1 = [
+    "...oo.oo........",
+    "...olfflo.......",
+    "...okffko.......",
+    "....offfft......",
+    ".....ff.ff......",
     "................",
 ]
 
-dragon_f1 = [
-    "wWo..........oWw",
-    "wWWo..ohho..oWWw",
-    ".wWo.oblbbo.oWw.",
-    ".oo.oblLLlbo.oo.",
-    ".oo.obeklkebo.o.",
-    "...oobbbkbbbbo..",
-    "...oobbbbbbbbo..",
-    "...oobbbssbbbo..",
-    "....obbbbbbbo...",
-    "....obddddbo....",
-    "....obnnnnbo....",
-    "....obbbbbbot...",
-    ".....obdboo..ot.",
-    "....obo.obo..oo.",
-    "....oo...oo.....",
-    "................",
+cat5_f2 = [
+    ".......oo.oo....",
+    ".......olfflo...",
+    ".......okffko...",
+    "........offfft..",
+    "........offfft..",
+    ".......off.off..",
+    "........oo..oo..",
 ]
 
-dragon_f2 = [
-    "wWo..........oWw",
-    "wWWo..ohho..oWWw",
-    ".wWo.oblbbo.oWw.",
-    ".oo.oblLLlbo.oo.",
-    ".oo.obeklkebo.o.",
-    "...oobbbkbbbbo..",
-    "...oobbbbbbbbo..",
-    "...oobbbssbbbo..",
-    "....obbbbbbbo...",
-    "....obddddbo....",
-    "....obnnnnbo....",
-    "....obbbbbbot...",
-    ".....obdboo.ot..",
-    "...obo..obo..oo.",
-    "...oo....oo.....",
-    "................",
-]
-
-# ═══════════════════════════════════════════════════
-#  6. シンリュウ (God Dragon) - 金色、王冠、オーラ
-# ═══════════════════════════════════════════════════
-goddragon_palette = {
-    'o': (90, 65, 10),       # outline gold-dark
-    'g': (255, 200, 50),     # body gold
-    'l': (255, 225, 100),    # light gold
-    'L': (255, 240, 150),    # lightest gold
-    'd': (200, 150, 30),     # dark gold
-    'w': (255, 235, 130),    # wing light
-    'W': (230, 185, 50),     # wing mid
-    's': (220, 170, 35),     # scales
-    'e': (255, 50, 50),      # eye red
-    'k': (30, 10, 10),       # pupil
-    'n': (255, 245, 200),    # belly
-    'h': (210, 155, 25),     # horn
-    'a': (255, 255, 220),    # aura/crown
-    'c': (100, 200, 255),    # crystal/gem
-    't': (220, 165, 25),     # tail
-    'C': (160, 230, 255),    # crystal bright
+# ─── 6. ボスねこ (Golden cat - full sprint) ───
+cat6_palette = {
+    'o': (155, 125, 25),
+    'f': (245, 205, 85),
+    'l': (255, 235, 140),
+    'k': (50, 35, 20),
+    'p': (225, 175, 155),
+    't': (235, 195, 70),
 }
 
-goddragon_f0 = [
-    "wWo...aCCCa..oWw",
-    "wWWoh.oggo.hoWWw",
-    ".wWo.ogLlgo.oWw.",
-    ".oo.ogLcLlgo.oo.",
-    ".oo.ogeklkego.o.",
-    "...oogggkggggo..",
-    "...ooggggggggoo.",
-    "...oogggsssggo..",
-    "....oggggggggo..",
-    "....ogddddgo....",
-    "....ognnnngoo...",
-    "....oggggggot...",
-    ".....ogddgoo.ot.",
-    "....ogo..ogo.oo.",
-    "....oo....oo....",
-    "................",
+cat6_f0 = [
+    "...oo.oo........",
+    "...olfflo.......",
+    "...okffko.......",
+    "....offffffffft.",
+    "....offffffffft.",
+    "...of.....of.ot.",
+    "...oo.....oo.o..",
 ]
 
-goddragon_f1 = [
-    "wWo...aCCCa..oWw",
-    "wWWoh.oggo.hoWWw",
-    ".wWo.ogLlgo.oWw.",
-    ".oo.ogLcLlgo.oo.",
-    ".oo.ogeklkego.o.",
-    "...oogggkggggo..",
-    "...ooggggggggoo.",
-    "...oogggsssggo..",
-    "....oggggggggo..",
-    "....ogddddgo....",
-    "....ognnnngoo...",
-    "....oggggggot...",
-    ".....ogddgoo..ot",
-    "....ogo..ogo..oo",
-    "....oo....oo....",
-    "................",
+cat6_f1 = [
+    "...oo.oo........",
+    "...olfflo.......",
+    "...okffko.......",
+    "....offffffffft.",
+    "....offffffffft.",
+    ".....of.of....ot",
+    ".....oo.oo....o.",
 ]
 
-goddragon_f2 = [
-    "wWo...aCCCa..oWw",
-    "wWWoh.oggo.hoWWw",
-    ".wWo.ogLlgo.oWw.",
-    ".oo.ogLcLlgo.oo.",
-    ".oo.ogeklkego.o.",
-    "...oogggkggggo..",
-    "...ooggggggggoo.",
-    "...oogggsssggo..",
-    "....oggggggggo..",
-    "....ogddddgo....",
-    "....ognnnngoo...",
-    "....oggggggooto.",
-    ".....ogddgoo.ot.",
-    "...ogo...ogo.oo.",
-    "...oo.....oo....",
-    "................",
+cat6_f2 = [
+    "...oo.oo........",
+    "...olfflo.......",
+    "...okffko.......",
+    "....offffffffft.",
+    "....offffffffft.",
+    "......of...of.ot",
+    "......oo...oo.o.",
 ]
 
 # ═══════════════════════════════════════════════════
 #  生成実行
 # ═══════════════════════════════════════════════════
 characters = [
-    ("egg",       egg_palette,       [egg_f0, egg_f1, egg_f2]),
-    ("slime",     slime_palette,     [slime_f0, slime_f1, slime_f2]),
-    ("wolf",      wolf_palette,      [wolf_f0, wolf_f1, wolf_f2]),
-    ("demon",     demon_palette,     [demon_f0, demon_f1, demon_f2]),
-    ("dragon",    dragon_palette,    [dragon_f0, dragon_f1, dragon_f2]),
-    ("goddragon", goddragon_palette, [goddragon_f0, goddragon_f1, goddragon_f2]),
+    ("egg",       cat1_palette, [cat1_f0, cat1_f1, cat1_f2]),
+    ("slime",     cat2_palette, [cat2_f0, cat2_f1, cat2_f2]),
+    ("wolf",      cat3_palette, [cat3_f0, cat3_f1, cat3_f2]),
+    ("demon",     cat4_palette, [cat4_f0, cat4_f1, cat4_f2]),
+    ("dragon",    cat5_palette, [cat5_f0, cat5_f1, cat5_f2]),
+    ("goddragon", cat6_palette, [cat6_f0, cat6_f1, cat6_f2]),
 ]
 
 os.makedirs(ART_DIR, exist_ok=True)
 
 if __name__ == '__main__':
     for name, palette, frames in characters:
-        print(f"\n[{name}]")
+        print(f"[{name}]")
         art = render_ansi(frames[0], palette)
         save_art(f"{name}_clean.txt", art)
         save_art(f"{name}_ansi.txt", art)
         for i, frame in enumerate(frames):
             art = render_ansi(frame, palette)
             save_art(f"{name}_f{i}_clean.txt", art)
-    print("\nAll art generated!")
+    print("\nDone!")

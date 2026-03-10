@@ -18,12 +18,12 @@ BG_COLOR = (30, 30, 35)  # ダーク背景
 LABEL_HEIGHT = 40
 
 labels = {
-    'egg': 'タマゴ (Egg)',
-    'slime': 'スライム (Slime)',
-    'wolf': 'ウルフ (Wolf)',
-    'demon': 'アクマ (Demon)',
-    'dragon': 'リュウ (Dragon)',
-    'goddragon': 'シンリュウ (God Dragon)',
+    'egg': 'こたま (Kotama)',
+    'slime': 'こねこ (Koneko)',
+    'wolf': 'さんぽ (Sanpo)',
+    'demon': 'ハンター (Hunter)',
+    'dragon': 'にんじゃ (Ninja)',
+    'goddragon': 'ボスねこ (Boss Cat)',
 }
 
 def render_character(grid, palette, pixel_size=PIXEL_SIZE):
