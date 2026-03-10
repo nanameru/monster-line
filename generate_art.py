@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """
-monster-line キャラクター ピクセルアート生成スクリプト v5
-全ステージ猫！ 小さく全身を表示、遊んでいる感じ
+monster-line キャラクター ピクセルアート生成スクリプト v6
+全ステージ猫！ 全体像で目だけあり。動きがある可愛いバージョン。
 """
 
 import os
@@ -52,308 +52,260 @@ def save_art(name, content):
 
 
 # ═══════════════════════════════════════════════════
-#  共通: o=outline, f=fur, l=light fur, k=eye, p=inner ear
+#  共通パレット
 # ═══════════════════════════════════════════════════
-
-# ─── 0. キュートねこ (Cute Cat with big eyes, jumping) ───
-cutecat_palette = {
-    'o': (45, 45, 50),
-    'f': (255, 255, 255),
-    'l': (235, 235, 240),
-    'p': (255, 150, 180),
-    'b': (30, 200, 255),
-    'k': (15, 15, 25),
+cat_palette = {
+    'o': (45, 45, 50),     # Outline
+    'f': (255, 255, 255),  # Fur (White)
+    'k': (15, 15, 25),     # Eye center
+    'P': (255, 150, 180),  # Pink (Ears/Paws)
+    'd': (220, 220, 230),  # Shadow fur
 }
 
-cutecat_f0 = [
-    "................",
-    "................",
-    "...oooo....oooo.",
-    "..opoooffffooopo",
-    ".oofffffffffffoo",
-    ".offbffffffbffo.",
-    ".offkkffffkkffo.",
-    ".offfffffffffffo",
-    "..offfoooffooffo",
-    "...oo....oo...oo",
-]
-
-cutecat_f1 = [
-    "....oo....oo....",
-    "...opo....opo...",
-    "..oofffoooofffo.",
-    ".oofffffffffffoo",
-    ".offbffffffbffo.",
-    ".offkkffffkkffo.",
-    ".ooffffffffffffo",
-    "ooffffffffffffo.",
-    "ofooofffoooffoo.",
-    "o...oo....oo....",
-]
-
-cutecat_f2 = [
-    "................",
-    "....oo....oo....",
-    "...opo....opo...",
-    "..oofffoooofffo.",
-    "..offfffffffffo.",
-    "..offbbffffbbfo.",
-    "..offkkffffkkfo.",
-    "..offfffffffffo.",
-    "...oofff.oofffo.",
-    "....oo....oo....",
-]
-
-# ─── 1. こたま (Cream kitten - sitting, pawing at something) ───
-cat1_palette = {
-    'o': (160, 135, 90),
-    'f': (255, 240, 210),
-    'l': (255, 250, 235),
-    'k': (40, 40, 50),
-    'p': (245, 190, 190),
-    't': (255, 235, 200),
-}
-
+# ─── 1. egg = ぐっすりねこ (Sleeping cat) ───
+p1 = cat_palette.copy(); p1['b'] = (100, 200, 255) # light blue
 cat1_f0 = [
-    ".....oo.oo......",
-    ".....olfflo.....",
-    ".....okffkofo...",
-    "......offffooo..",
-    "......offffo....",
-    ".....off..fo.t..",
-    "......oo..oo.o..",
+    "................",
+    "................",
+    "................",
+    "...ooo....ooo...",
+    "..oPPo...oPPo...",
+    ".oofffoooofffoo.",
+    "ooffffffffffffoo",
+    "ooffoffffffoffoo",
+    ".ooffffffffffffo",
+    "..oooooooooooo..",
 ]
-
 cat1_f1 = [
-    ".....oo.oo.fo...",
-    ".....olfflooo...",
-    ".....okffko.....",
-    "......offffo....",
-    "......offffo....",
-    ".....off..fo.t..",
-    "......oo..oo.o..",
+    "................",
+    "................",
+    "................",
+    "...ooo....ooo...",
+    "..oPPo...oPPo...",
+    ".oofffoooofffoo.",
+    "ooffffffffffffoo",
+    "ooffbffffffbffoo",
+    ".offkffffffkffo.",
+    "..oooooooooooo..",
 ]
-
 cat1_f2 = [
-    ".....oo.oo......",
-    ".....olfflo.....",
-    ".....okffko.....",
-    "......offffo....",
-    "......offffo....",
-    ".....off.ofo.t..",
-    "......oo.oo..o..",
+    "................",
+    "................",
+    "................",
+    "...ooo....ooo...",
+    "..oPPo...oPPo...",
+    ".oofffoooofffoo.",
+    "ooffffffffffffoo",
+    "ooffbffffffbffoo",
+    ".offkffffffkffo.",
+    "..oooooooooooo..",
 ]
 
-# ─── 2. こねこ (Orange kitten - running/chasing) ───
-cat2_palette = {
-    'o': (165, 95, 20),
-    'f': (245, 170, 65),
-    'l': (255, 205, 110),
-    'k': (40, 35, 30),
-    'p': (245, 185, 185),
-    't': (240, 155, 50),
-}
-
+# ─── 2. slime = おすわりねこ (Sitting cat) ───
+p2 = cat_palette.copy(); p2['b'] = (255, 180, 50) # Orange
 cat2_f0 = [
-    "....oo.oo.......",
-    "....olfflo......",
-    "....okffko......",
-    ".....offffot....",
-    ".....offffo.....",
-    "....of..fo......",
-    "....oo..oo......",
+    "................",
+    "....ooo..ooo....",
+    "...oPPo..oPPo...",
+    "..oofffoofffoo..",
+    ".ooffffffffffoo.",
+    ".offbffffffbffo.",
+    ".offkffffffkffo.",
+    ".ooffffffffffoo.",
+    "..ofoooffooofo..",
+    "...oooooooooo...",
 ]
-
 cat2_f1 = [
-    "....oo.oo.......",
-    "....olfflo......",
-    "....okffko......",
-    ".....offffo.....",
-    ".....offffot....",
-    "....of.ofo......",
-    "....oo.oo.......",
+    "................",
+    "....ooo..ooo....",
+    "...oPPo..oPPo...",
+    "..oofffoofffoo..",
+    ".ooffffffffffoo.",
+    ".offbffffffbffo.",
+    ".offkffffffkffo.",
+    "oooffffffffffoo.",
+    "oofoooffooofo...",
+    ".ooooooooooo....",
 ]
-
 cat2_f2 = [
-    "....oo.oo.......",
-    "....olfflo......",
-    "....okffko.fo...",
-    ".....offffooo...",
-    ".....offffo.....",
-    "....of..fo......",
-    "....oo..oo......",
+    "................",
+    "....ooo..ooo....",
+    "...oPPo..oPPo...",
+    "..oofffoofffoo..",
+    ".ooffffffffffoo.",
+    ".offbffffffbffo.",
+    ".offkffffffkffo.",
+    ".ooffffffffffooo",
+    "...ofoooffooofoo",
+    "....ooooooooooo.",
 ]
 
-# ─── 3. さんぽ (Grey tabby - walking/trotting) ───
-cat3_palette = {
-    'o': (80, 80, 90),
-    'f': (155, 155, 165),
-    'l': (195, 195, 205),
-    'd': (115, 115, 125),
-    'k': (40, 40, 55),
-    'p': (200, 165, 165),
-    't': (145, 145, 155),
-}
-
+# ─── 3. wolf = てくてくねこ (Walking cat) ───
+p3 = cat_palette.copy(); p3['b'] = (50, 200, 100) # Green
 cat3_f0 = [
-    ".....oo.oo......",
-    ".....oldflo.....",
-    ".....okffko.....",
-    "....ooffffooo...",
-    "...of......fot..",
-    "...oo......oo.o.",
+    "....ooo..ooo....",
+    "...oPPo..oPPo...",
+    "..oofffoofffoo..",
+    ".ooffffffffffoo.",
+    ".offbffffffbffo.",
+    ".offkffffffkffo.",
+    ".ooffffffffffoo.",
+    "..offffffffffffo",
+    "..ofooofffffffoo",
+    "...oo..oooooooo.",
 ]
-
 cat3_f1 = [
-    ".....oo.oo......",
-    ".....oldflo.....",
-    ".....okffko.....",
-    "...oooffffooo...",
-    "...of......fo.t.",
-    "...oo......oo.o.",
+    "....ooo..ooo....",
+    "...oPPo..oPPo...",
+    "..oofffoofffoo..",
+    ".ooffffffffffoo.",
+    ".offbffffffbffo.",
+    ".offkffffffkffo.",
+    ".ooffffffffffoo.",
+    "..offffffffffffo",
+    "..ofoooff..offoo",
+    "...oo..oo...ooo.",
 ]
-
 cat3_f2 = [
-    ".....oo.oo......",
-    ".....oldflo.....",
-    ".....okffko.....",
-    "....ooffffooo...",
-    "....of....fo..t.",
-    "....oo....oo..o.",
+    "....ooo..ooo....",
+    "...oPPo..oPPo...",
+    "..oofffoofffoo..",
+    ".ooffffffffffoo.",
+    ".offbffffffbffo.",
+    ".offkffffffkffo.",
+    ".ooffffffffffoo.",
+    "..offffffffffffo",
+    "..offoooff.ofoo.",
+    "...ooo..oo..oo..",
 ]
 
-# ─── 4. ハンター (Black cat - crouching/pouncing) ───
-cat4_palette = {
-    'o': (25, 25, 30),
-    'f': (60, 60, 65),
-    'l': (90, 90, 100),
-    'k': (110, 225, 100),    # green eyes!
-    'p': (155, 105, 105),
-    't': (55, 55, 60),
-}
-
+# ─── 4. demon = のび〜ねこ (Stretching cat) ───
+p4 = cat_palette.copy(); p4['b'] = (200, 100, 255) # Purple
 cat4_f0 = [
-    "................",
-    "....oo.oo.......",
-    "....olfflo......",
-    "....okffko......",
-    ".....offffffft..",
-    "...ooffffffffft.",
-    "...of.....of.ot.",
-    "...oo.....oo.o..",
+    ".......ooo..ooo.",
+    "......oPPo..oPPo",
+    ".....oofffoofffo",
+    "....ooffffffffff",
+    "...ooffbffffffbf",
+    "..oofffkffffffkf",
+    ".ooffffffffffffo",
+    "oofffffffffffoo.",
+    "ofoooff..offoo..",
+    "ooo..oo...ooo...",
 ]
-
 cat4_f1 = [
-    "................",
-    "....oo.oo.......",
-    "....olfflo......",
-    "....okffko......",
-    ".....offfffft...",
-    "..oooffffffffft.",
-    "...of....of..ot.",
-    "...oo....oo...o.",
+    "......ooo..ooo..",
+    ".....oPPo..oPPo.",
+    "....oofffoofffoo",
+    "...ooffffffffffo",
+    "..ooffbffffffbfo",
+    ".oofffkffffffkfo",
+    "ooffffffffffffo.",
+    "offfffffffffoo..",
+    "ofoooff..offoo..",
+    "ooo..oo...ooo...",
 ]
-
 cat4_f2 = [
-    "................",
-    "..oo.oo.........",
-    "..olfflo........",
-    "..okffko........",
-    "...offffffffft..",
-    ".....of...of.ot.",
-    ".....oo...oo.o..",
+    ".....ooo..ooo...",
+    "....oPPo..oPPo..",
+    "...oofffoofffoo.",
+    "..ooffffffffffoo",
+    ".ooffbffffffbffo",
+    ".ooffkffffffkffo",
+    ".ooffffffffffffo",
+    "..offffffffffoo.",
+    "..ofoooff..offoo",
+    "...oo..oo...ooo.",
 ]
 
-# ─── 5. にんじゃ (Blue-grey cat - jumping) ───
-cat5_palette = {
-    'o': (60, 70, 90),
-    'f': (135, 155, 180),
-    'l': (175, 195, 220),
-    'k': (40, 40, 60),
-    'p': (195, 165, 175),
-    't': (125, 145, 170),
-}
-
+# ─── 5. dragon = ぴょんねこ (Jumping cat) ───
+p5 = cat_palette.copy(); p5['b'] = (255, 100, 100) # Red/Pink
 cat5_f0 = [
-    ".....oo.oo......",
-    ".....olfflo.....",
-    ".....okffko.....",
-    "......offfft....",
-    "......offfft....",
-    ".....off.off....",
-    "......oo..oo....",
-]
-
-cat5_f1 = [
-    "...oo.oo........",
-    "...olfflo.......",
-    "...okffko.......",
-    "....offfft......",
-    ".....ff.ff......",
     "................",
+    "....ooo..ooo....",
+    "...oPPo..oPPo...",
+    "..oofffoofffoo..",
+    ".ooffffffffffoo.",
+    ".offbffffffbffo.",
+    ".offkffffffkffo.",
+    ".ooffffffffffoo.",
+    "oofffooffoooffoo",
+    ".ooo..oooo..ooo.",
 ]
-
+cat5_f1 = [
+    "................",
+    "....ooo..ooo....",
+    "...oPPo..oPPo...",
+    "..oofffoofffoo..",
+    ".ooffffffffffoo.",
+    ".offbffffffbffo.",
+    ".offkffffffkffo.",
+    ".ooffffffffffoo.",
+    "..offffffffffoo.",
+    "...oooooooooo...",
+]
 cat5_f2 = [
-    ".......oo.oo....",
-    ".......olfflo...",
-    ".......okffko...",
-    "........offfft..",
-    "........offfft..",
-    ".......off.off..",
-    "........oo..oo..",
+    "....ooo..ooo....",
+    "...oPPo..oPPo...",
+    "..oofffoofffoo..",
+    ".ooffffffffffoo.",
+    ".offbffffffbffo.",
+    ".offkffffffkffo.",
+    ".ooffffffffffoo.",
+    "..offffffffffoo.",
+    "..ofoooffooofo..",
+    "...ooo..oo..oo..",
 ]
 
-# ─── 6. ボスねこ (Golden cat - full sprint) ───
-cat6_palette = {
-    'o': (155, 125, 25),
-    'f': (245, 205, 85),
-    'l': (255, 235, 140),
-    'k': (50, 35, 20),
-    'p': (225, 175, 155),
-    't': (235, 195, 70),
-}
-
+# ─── 6. goddragon = ダッシュねこ (Running cat) ───
+p6 = cat_palette.copy(); p6['b'] = (255, 230, 50) # Gold
 cat6_f0 = [
-    "...oo.oo........",
-    "...olfflo.......",
-    "...okffko.......",
-    "....offffffffft.",
-    "....offffffffft.",
-    "...of.....of.ot.",
-    "...oo.....oo.o..",
+    "................",
+    "....ooo..ooo....",
+    "...oPPo..oPPo...",
+    "..oofffoofffoo..",
+    ".ooffffffffffoo.",
+    ".offbffffffbffo.",
+    ".offkffffffkffo.",
+    "..ooffffffffffoo",
+    "ooooffooofffffoo",
+    "..ooo...ooooooo.",
 ]
-
 cat6_f1 = [
-    "...oo.oo........",
-    "...olfflo.......",
-    "...okffko.......",
-    "....offffffffft.",
-    "....offffffffft.",
-    ".....of.of....ot",
-    ".....oo.oo....o.",
+    "................",
+    "....ooo..ooo....",
+    "...oPPo..oPPo...",
+    "..oofffoofffoo..",
+    ".ooffffffffffoo.",
+    ".offbffffffbffo.",
+    ".offkffffffkffo.",
+    ".ooffffffffffooo",
+    ".offoooffffffooo",
+    "..ooo..ooooooo..",
 ]
-
 cat6_f2 = [
-    "...oo.oo........",
-    "...olfflo.......",
-    "...okffko.......",
-    "....offffffffft.",
-    "....offffffffft.",
-    "......of...of.ot",
-    "......oo...oo.o.",
+    "................",
+    "....ooo..ooo....",
+    "...oPPo..oPPo...",
+    "..oofffoofffoo..",
+    ".ooffffffffffoo.",
+    ".offbffffffbffo.",
+    ".offkffffffkffo.",
+    "..ooffffffffffoo",
+    "..offoooffffffoo",
+    "...ooo..ooooooo.",
 ]
 
 # ═══════════════════════════════════════════════════
 #  生成実行
 # ═══════════════════════════════════════════════════
 characters = [
-    ("cutecat",   cutecat_palette, [cutecat_f0, cutecat_f1, cutecat_f2]),
-    ("egg",       cat1_palette, [cat1_f0, cat1_f1, cat1_f2]),
-    ("slime",     cat2_palette, [cat2_f0, cat2_f1, cat2_f2]),
-    ("wolf",      cat3_palette, [cat3_f0, cat3_f1, cat3_f2]),
-    ("demon",     cat4_palette, [cat4_f0, cat4_f1, cat4_f2]),
-    ("dragon",    cat5_palette, [cat5_f0, cat5_f1, cat5_f2]),
-    ("goddragon", cat6_palette, [cat6_f0, cat6_f1, cat6_f2]),
+    ("egg",       p1, [cat1_f0, cat1_f1, cat1_f2]),
+    ("slime",     p2, [cat2_f0, cat2_f1, cat2_f2]),
+    ("wolf",      p3, [cat3_f0, cat3_f1, cat3_f2]),
+    ("demon",     p4, [cat4_f0, cat4_f1, cat4_f2]),
+    ("dragon",    p5, [cat5_f0, cat5_f1, cat5_f2]),
+    ("goddragon", p6, [cat6_f0, cat6_f1, cat6_f2]),
 ]
 
 os.makedirs(ART_DIR, exist_ok=True)
